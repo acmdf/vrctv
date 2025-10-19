@@ -1,0 +1,36 @@
+[package]
+name = "project-lily-desktop"
+version = "0.1.0"
+description = "A Tauri App"
+authors = ["you"]
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+# The `_lib` suffix may seem redundant but it is necessary
+# to make the lib name unique and wouldn't conflict with the bin name.
+# This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
+name = "project_lily_desktop_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2.0", features = ["rustls-tls"] }
+tauri-plugin-opener = "2"
+serde = { workspace = true }
+serde_json = "1"
+specta = "=2.0.0-rc.22"
+specta-typescript = "0.0.9"
+tauri-specta = { version = "=2.0.0-rc.21", features = ["derive", "typescript"] }
+vrchat_osc = "1.0"
+tokio = { workspace = true }
+log = { workspace = true }
+anyhow = "1.0.100"
+platform-dirs = "0.3.0"
+glob = "0.3.3"
+tauri-plugin-log = "2"
+tauri-plugin-notification = "2"
+tauri-plugin-websocket = { version = "2", features = ["native-tls"] }

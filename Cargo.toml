@@ -1,0 +1,8 @@
+[workspace]
+resolver = "3"
+members = ["project-lily-common", "project-lily-server", "project-lily-desktop\\src-tauri"]
+
+[workspace.dependencies]
+log = "0.4.28"
+tokio = { version = "1.47.1", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }

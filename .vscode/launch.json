@@ -1,0 +1,118 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'project_lily_common'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=project-lily-common"
+                ],
+                "filter": {
+                    "name": "project_lily_common",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'project-lily-server'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=project-lily-server",
+                    "--package=project-lily-server"
+                ],
+                "filter": {
+                    "name": "project-lily-server",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "envFile": "${cwd}/.env"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'project-lily-server'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=project-lily-server",
+                    "--package=project-lily-server"
+                ],
+                "filter": {
+                    "name": "project-lily-server",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'project_lily_desktop_lib'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=project-lily-desktop"
+                ],
+                "filter": {
+                    "name": "project_lily_desktop_lib",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'project-lily-desktop'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=project-lily-desktop",
+                    "--package=project-lily-desktop"
+                ],
+                "filter": {
+                    "name": "project-lily-desktop",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'project-lily-desktop'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=project-lily-desktop",
+                    "--package=project-lily-desktop"
+                ],
+                "filter": {
+                    "name": "project-lily-desktop",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}
