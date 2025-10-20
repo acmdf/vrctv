@@ -4,8 +4,8 @@ use axum::extract::ws::{Message, WebSocket};
 use futures_util::{SinkExt, StreamExt};
 use log::{debug, error, info};
 use project_lily_common::{
-    ChangeAvatar, ClientMessage, ConnectRequest, ConnectResponse, ErrorMessage, Notify,
-    ServerMessage, StreamLabsEvent, StreamLabsEvents, TaskResponse, TwitchEvent, TwitchEventSource,
+    ClientMessage, ConnectRequest, ConnectResponse, ErrorMessage, ServerMessage, StreamLabsEvent,
+    StreamLabsEvents, TaskResponse,
 };
 use rust_socketio::Payload as SocketioPayload;
 use serde_json::Value;
@@ -15,7 +15,6 @@ use tokio::sync::{
 };
 use twitch_api::{
     HelixClient, TWITCH_EVENTSUB_WEBSOCKET_URL,
-    eventsub::{self, Event, Payload, channel::chat::Fragment},
     twitch_oauth2::{self, AccessToken, ClientId, ClientSecret, RefreshToken},
 };
 
@@ -24,7 +23,10 @@ use crate::{
     db::Database,
     entities::{ActiveKey, ActiveStreamLabsKey, ActiveTwitchKey},
     streamlabs::{self, socket::SocketioConnection},
-    twitch::{eventsub::EventSubWebsocket, handle_twitch_trigger},
+    twitch::{
+        events::{handle_event, handle_twitch_trigger},
+        eventsub::EventSubWebsocket,
+    },
 };
 
 #[derive(Debug)]
@@ -557,171 +559,15 @@ pub async fn handle_message(
                         return Err("Twitch not connected".into());
                     }
 
-                    let twitch = context.twitch.as_ref().unwrap();
-                    handle_twitch_trigger(&http_client, twitch, trigger_request, tx).await?;
+                    let twitch = context.twitch.as_mut().unwrap();
+                    if handle_twitch_trigger(&http_client, twitch, trigger_request.clone(), tx).await? {
+                        // Token was refreshed, retry once
+                        handle_twitch_trigger(&http_client, twitch, trigger_request, tx).await?;
+                    }
                 }
             }
         }
     }
 
     Ok(true)
-}
-
-pub async fn handle_event(event: &Event, conn: &ClientConnection) -> Result<(), String> {
-    match event {
-        Event::ChannelPointsCustomRewardRedemptionAddV1(Payload {
-            message: payload, ..
-        }) => {
-            let message = match payload {
-                eventsub::Message::Notification(message) => message,
-                _ => {
-                    error!("Unexpected payload type for ChannelPointsCustomRewardRedemptionAddV1");
-                    return Err("Unexpected payload type".into());
-                }
-            };
-
-            send_all_message(
-                ServerMessage::TwitchEvent(TwitchEvent {
-                    user_id: message.user_login.to_string(),
-                    user_name: message.user_name.to_string(),
-                    event: TwitchEventSource::ChannelPoints {
-                        reward_id: message.reward.id.to_string(),
-                        reward_name: message.reward.title.to_string(),
-                    },
-                }),
-                &conn,
-            )
-            .await
-        }
-        Event::ChannelBitsUseV1(Payload {
-            message: payload, ..
-        }) => {
-            let message = match payload {
-                eventsub::Message::Notification(message) => message,
-                _ => {
-                    error!("Unexpected payload type for ChannelBitsUseV1");
-                    return Err("Unexpected payload type".into());
-                }
-            };
-
-            send_all_message(
-                ServerMessage::TwitchEvent(TwitchEvent {
-                    user_id: message.user_login.to_string(),
-                    user_name: message.user_name.to_string(),
-                    event: TwitchEventSource::BitDonation {
-                        amount: message.bits as u32,
-                        message: message.message.as_ref().map(|m| m.text.clone()),
-                        emojis: message.message.as_ref().map(|m| {
-                            m.fragments
-                                .iter()
-                                .filter_map(|f| match f {
-                                    Fragment::Emote { text, .. } => Some(text.clone()),
-                                    Fragment::Cheermote { text, .. } => Some(text.clone()),
-                                    _ => None,
-                                })
-                                .collect()
-                        }),
-                    },
-                }),
-                conn,
-            )
-            .await
-        }
-        Event::UserWhisperMessageV1(Payload {
-            message: payload, ..
-        }) => {
-            let message = match payload {
-                eventsub::Message::Notification(message) => message,
-                _ => {
-                    error!("Unexpected payload type for UserWhisperMessageV1");
-                    return Err("Unexpected payload type".into());
-                }
-            };
-
-            if message.from_user_login.as_str() == "acmdf" {
-                if message.whisper.text == "furry_mode" {
-                    let _ = send_all_message(
-                        ServerMessage::ChangeAvatar(ChangeAvatar {
-                            id: "avtr_66069c77-8ecb-439c-9643-cfb1fbfb1363".into(),
-                        }),
-                        conn,
-                    )
-                    .await;
-                } else if message.whisper.text == "normal_mode" {
-                    let _ = send_all_message(
-                        ServerMessage::ChangeAvatar(ChangeAvatar {
-                            id: "avtr_da3a3a4d-4936-4652-aa2b-442650e99f5c".into(),
-                        }),
-                        conn,
-                    )
-                    .await;
-                }
-            }
-
-            let _ = send_all_message(
-                ServerMessage::Notify(Notify {
-                    title: message.from_user_name.to_string(),
-                    message: message.whisper.text.to_string(),
-                }),
-                conn,
-            )
-            .await;
-
-            send_all_message(
-                ServerMessage::TwitchEvent(TwitchEvent {
-                    user_id: message.from_user_login.to_string(),
-                    user_name: message.from_user_name.to_string(),
-                    event: TwitchEventSource::Whisper {
-                        message: message.whisper.text.to_string(),
-                    },
-                }),
-                conn,
-            )
-            .await
-        }
-        Event::ChannelChatMessageV1(Payload {
-            message: payload, ..
-        }) => {
-            let message = match payload {
-                eventsub::Message::Notification(message) => message,
-                _ => {
-                    error!("Unexpected payload type for UserWhisperMessageV1");
-                    return Err("Unexpected payload type".into());
-                }
-            };
-
-            if message.chatter_user_name.as_str() == "acmdf" {
-                if message.message.text == "furry_mode" {
-                    let _ = send_all_message(
-                        ServerMessage::ChangeAvatar(ChangeAvatar {
-                            id: "avtr_66069c77-8ecb-439c-9643-cfb1fbfb1363".into(),
-                        }),
-                        conn,
-                    )
-                    .await;
-                } else if message.message.text == "normal_mode" {
-                    let _ = send_all_message(
-                        ServerMessage::ChangeAvatar(ChangeAvatar {
-                            id: "avtr_da3a3a4d-4936-4652-aa2b-442650e99f5c".into(),
-                        }),
-                        conn,
-                    )
-                    .await;
-                }
-            }
-
-            send_all_message(
-                ServerMessage::TwitchEvent(TwitchEvent {
-                    user_id: message.chatter_user_id.to_string(),
-                    user_name: message.chatter_user_name.to_string(),
-                    event: TwitchEventSource::Message {
-                        message: message.message.text.to_string(),
-                    },
-                }),
-                conn,
-            )
-            .await
-        }
-        _ => Ok(()),
-    }
 }

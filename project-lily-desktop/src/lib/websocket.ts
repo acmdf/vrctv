@@ -164,7 +164,10 @@ export function handleMessage(message: MessageKind<"Text", string>) {
             if (parsed.request_id) {
                 taskStateStore.update(state => ({
                     ...state,
-                    [parsed.request_id]: TaskState.Failed
+                    [parsed.request_id]: {
+                        state: TaskState.Failed,
+                        reason: parsed.message || "Unknown error"
+                    }
                 }));
             }
             break;

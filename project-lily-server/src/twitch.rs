@@ -2,34 +2,23 @@ use std::{collections::HashMap, env};
 
 use axum::{
     Extension,
-    extract::{Query, State, ws::Message},
+    extract::{Query, State},
     response::IntoResponse,
 };
-use log::{debug, error, info};
-use project_lily_common::{CustomRewardResponse, ServerMessage, TwitchTriggerRequest};
+use log::{debug, info};
 use reqwest::Url;
 use rusqlite::params;
-use tokio::sync::mpsc::Sender;
-use twitch_api::{
-    HelixClient,
-    helix::points::{
-        CreateCustomRewardBody, CreateCustomRewardRequest, CustomRewardRedemptionStatus,
-        DeleteCustomRewardRequest, GetCustomRewardRequest, UpdateCustomRewardBody,
-        UpdateCustomRewardRequest, UpdateRedemptionStatusBody, UpdateRedemptionStatusRequest,
-    },
-    twitch_oauth2::{
-        ClientSecret, TwitchToken, UserToken, UserTokenBuilder, client::Client,
-        id::TwitchTokenResponse,
-    },
+use twitch_api::twitch_oauth2::{
+    ClientSecret, TwitchToken, UserToken, UserTokenBuilder, client::Client, id::TwitchTokenResponse,
 };
 
 use crate::{
     AppState,
     db::Database,
     entities::{ActiveKey, TwitchUser},
-    server::{send_error, send_message, send_task_response},
 };
 
+pub mod events;
 pub mod eventsub;
 
 pub async fn use_authorization_code(
@@ -220,230 +209,4 @@ pub async fn auth_callback(
             );
         }
     }
-}
-
-pub async fn handle_twitch_trigger(
-    http_client: &reqwest::Client,
-    twitch: &UserToken,
-    trigger_request: TwitchTriggerRequest,
-    tx: &Sender<Message>,
-) -> Result<(), String> {
-    info!("Handling Twitch trigger request: {:?}", trigger_request);
-
-    let client = HelixClient::with_client(http_client.clone());
-    match trigger_request {
-        TwitchTriggerRequest::ChannelPointsFulfill {
-            request_id,
-            reward_id,
-            redemption_id,
-        } => {
-            let request = UpdateRedemptionStatusRequest::new(
-                twitch.user_id.clone(),
-                reward_id,
-                redemption_id,
-            );
-            let body = UpdateRedemptionStatusBody::status(CustomRewardRedemptionStatus::Fulfilled);
-
-            match client.req_patch(request, body, twitch).await {
-                Ok(d) => {
-                    info!("Successfully fulfilled redemption: {:?}", d);
-                    let _ = send_task_response(true, None, tx, request_id).await;
-                }
-                Err(e) => {
-                    error!("Failed to fulfill redemption: {}", e);
-                    let _ = send_error(e, "twitch_fullfill_redemption", tx, request_id).await;
-                }
-            }
-        }
-        TwitchTriggerRequest::ChannelPointsCancel {
-            request_id,
-            reward_id,
-            redemption_id,
-        } => {
-            let request = UpdateRedemptionStatusRequest::new(
-                twitch.user_id.clone(),
-                reward_id,
-                redemption_id,
-            );
-            let body = UpdateRedemptionStatusBody::status(CustomRewardRedemptionStatus::Canceled);
-
-            match client.req_patch(request, body, twitch).await {
-                Ok(d) => {
-                    info!("Successfully cancelled redemption: {:?}", d);
-                    let _ = send_task_response(true, None, tx, request_id).await;
-                }
-                Err(e) => {
-                    error!("Failed to cancel redemption: {}", e);
-                    let _ = send_error(e, "twitch_cancel_redemption", tx, request_id).await;
-                }
-            }
-        }
-        TwitchTriggerRequest::UpdateCustomRewards {
-            request_id,
-            rewards,
-        } => {
-            let request = GetCustomRewardRequest::broadcaster_id(twitch.user_id.clone())
-                .only_manageable_rewards(true);
-
-            match client.req_get(request, twitch).await {
-                Ok(d) => {
-                    info!("Successfully fetched previous custom rewards: {:?}", d);
-
-                    let data = d.data;
-
-                    for reward in rewards.clone() {
-                        if let Some(existing) = data.iter().find(|r| r.title == reward.title) {
-                            let update_request = UpdateCustomRewardRequest::new(
-                                twitch.user_id.clone(),
-                                existing.id.clone(),
-                            );
-                            let mut update_body = UpdateCustomRewardBody::default();
-
-                            if existing.cost != reward.cost as usize {
-                                update_body.cost = Some(reward.cost as usize);
-                            }
-                            if existing.prompt != reward.prompt {
-                                update_body.prompt = Some(reward.prompt.into());
-                            }
-                            if existing.is_enabled != reward.is_enabled {
-                                update_body.is_enabled = Some(reward.is_enabled);
-                            }
-                            if existing.global_cooldown_setting.is_enabled
-                                != reward.is_global_cooldown_enabled
-                            {
-                                update_body.is_global_cooldown_enabled =
-                                    Some(reward.is_global_cooldown_enabled);
-                            }
-                            if existing.global_cooldown_setting.global_cooldown_seconds
-                                != reward.global_cooldown_seconds
-                            {
-                                update_body.global_cooldown_seconds =
-                                    Some(reward.global_cooldown_seconds as usize);
-                            }
-
-                            if update_body == UpdateCustomRewardBody::default() {
-                                info!("No changes for custom reward: {}", reward.title);
-                                continue;
-                            }
-
-                            match client.req_patch(update_request, update_body, twitch).await {
-                                Ok(updated) => {
-                                    info!("Successfully updated custom reward: {:?}", updated);
-                                }
-                                Err(e) => {
-                                    error!("Failed to update custom reward: {}", e);
-                                    let _ = send_error(
-                                        e,
-                                        "twitch_update_custom_reward",
-                                        tx,
-                                        request_id,
-                                    )
-                                    .await;
-                                }
-                            }
-                        } else {
-                            // Create the reward
-                            let create_request = CreateCustomRewardRequest::broadcaster_id(
-                                twitch.user_id.to_string(),
-                            );
-                            let mut create_body =
-                                CreateCustomRewardBody::new(reward.title, reward.cost as usize);
-                            create_body.prompt = Some(reward.prompt.into());
-                            create_body.is_enabled = Some(reward.is_enabled);
-                            create_body.is_global_cooldown_enabled =
-                                Some(reward.is_global_cooldown_enabled);
-                            create_body.global_cooldown_seconds =
-                                Some(reward.global_cooldown_seconds as usize);
-
-                            match client.req_post(create_request, create_body, twitch).await {
-                                Ok(created) => {
-                                    info!("Successfully created custom reward: {:?}", created);
-                                }
-                                Err(e) => {
-                                    error!("Failed to create custom reward: {}", e);
-                                    let _ = send_error(
-                                        e,
-                                        "twitch_create_custom_reward",
-                                        tx,
-                                        request_id,
-                                    )
-                                    .await;
-                                }
-                            }
-                        }
-                    }
-
-                    for reward in data {
-                        if !rewards.iter().any(|r| r.title == reward.title) {
-                            // Delete the reward
-                            let delete_request = DeleteCustomRewardRequest::new(
-                                twitch.user_id.clone(),
-                                reward.id.clone(),
-                            );
-
-                            match client.req_delete(delete_request, twitch).await {
-                                Ok(deleted) => {
-                                    info!("Successfully disabled custom reward: {:?}", deleted);
-                                }
-                                Err(e) => {
-                                    error!("Failed to disable custom reward: {}", e);
-                                    let _ = send_error(
-                                        e,
-                                        "twitch_disable_custom_reward",
-                                        tx,
-                                        request_id,
-                                    )
-                                    .await;
-                                }
-                            }
-                        }
-                    }
-
-                    let _ = send_task_response(true, None, tx, request_id).await;
-                }
-                Err(e) => {
-                    error!("Failed to fetch previous custom rewards: {}", e);
-                    let _ = send_error(e, "twitch_set_custom_rewards", tx, request_id).await;
-                }
-            }
-        }
-        TwitchTriggerRequest::GetCustomRewards { request_id } => {
-            let request = GetCustomRewardRequest::broadcaster_id(twitch.user_id.clone())
-                .only_manageable_rewards(true);
-
-            match client.req_get(request, twitch).await {
-                Ok(d) => {
-                    info!("Successfully fetched custom rewards: {:?}", d);
-
-                    let data = d.data;
-
-                    let msg = ServerMessage::CustomRewards {
-                        rewards: data
-                            .iter()
-                            .map(|d| CustomRewardResponse {
-                                id: d.id.to_string(),
-                                title: d.title.clone(),
-                                prompt: d.prompt.clone(),
-                                cost: d.cost.try_into().unwrap_or(0),
-                                is_enabled: d.is_enabled,
-                                is_global_cooldown_enabled: d.global_cooldown_setting.is_enabled,
-                                global_cooldown_seconds: d
-                                    .global_cooldown_setting
-                                    .global_cooldown_seconds,
-                            })
-                            .collect(),
-                    };
-
-                    let _ = send_message(msg, tx).await;
-                    let _ = send_task_response(true, None, tx, request_id).await;
-                }
-                Err(e) => {
-                    error!("Failed to fetch custom rewards: {}", e);
-                    let _ = send_error(e, "twitch_get_custom_rewards", tx, request_id).await;
-                }
-            }
-        }
-    }
-
-    Ok(())
 }
