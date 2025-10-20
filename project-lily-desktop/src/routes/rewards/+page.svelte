@@ -1,11 +1,13 @@
 <script lang="ts">
-  import { customRewardsStore, rewardStore } from "$lib/stores";
+  import { customRewardsStore, rewardStore, type Trigger } from "$lib/stores";
   import { Minus, Plus, RefreshCcw } from "@lucide/svelte";
   import type { PageProps } from "../$types";
   import type { Avatar, Result } from "../../bindings";
   import TwitchFilterEditor from "../../components/twitchFilterEditor.svelte";
   import { serverConnection } from "$lib/websocket";
   import { onMount } from "svelte";
+  import StreamlabsFilterEditor from "../../components/streamlabsFilterEditor.svelte";
+  import ParameterEditor from "../../components/parameterEditor.svelte";
 
   let { data: rawData }: PageProps = $props();
   const data = rawData as Result<Avatar[], string>;
@@ -120,7 +122,6 @@
             $rewardStore = { ...$rewardStore };
           }}
         />
-        
       </div>
       <div class="mb-2">
         Timeout (seconds):
@@ -158,22 +159,17 @@
         />
         {#each Object.entries($rewardStore.rewards[rewardId].setParams) as [key, value] (key)}
           <div class="mt-2">
-            <input
-              type="text"
-              class="p-1 bg-gray-700 text-white rounded w-128"
-              onchange={(e) => {
-                $rewardStore.rewards[rewardId].setParams[
-                  (e.target as unknown as { value: string })?.value
-                ] = reward.setParams[key];
-                delete $rewardStore.rewards[rewardId].setParams[key];
+            <ParameterEditor
+              avatarId={reward.setsAvatar ?? $rewardStore.baseAvatarId ?? ""}
+              param={key}
+              {value}
+              onChange={(param, val) => {
+                if (param !== key) {
+                  delete reward.setParams[key];
+                }
+                reward.setParams[param] = val;
+                $rewardStore = { ...$rewardStore };
               }}
-              value={key}
-            />
-            :
-            <input
-              type="text"
-              bind:value={$rewardStore.rewards[rewardId].setParams[key]}
-              class="ml-2 p-1 bg-gray-700 text-white rounded w-32"
             />
 
             <Minus
@@ -203,7 +199,9 @@
           Type: Twitch <Plus
             class="inline ml-2 cursor-pointer hover:text-gray-300"
             onclick={() => {
-              reward.on.matches.push({ type: "ChannelPoints" });
+              (reward.on as Extract<Trigger, { type: "twitch" }>).matches.push({
+                type: "ChannelPoints",
+              });
               $rewardStore = { ...$rewardStore };
             }}
           />
@@ -228,8 +226,35 @@
         </div>
       {:else if reward.on.type === "streamlabs"}
         <div class="mb-2">
-          Type: Streamlabs
-          <!-- Add more Streamlabs-specific trigger options here -->
+          Type: Streamlabs <Plus
+            class="inline ml-2 cursor-pointer hover:text-gray-300"
+            onclick={() => {
+              (
+                reward.on as Extract<Trigger, { type: "streamlabs" }>
+              ).matches.push({
+                type: "donation",
+              });
+              $rewardStore = { ...$rewardStore };
+            }}
+          />
+          {#each reward.on.matches as match, index (index)}
+            <div class="mt-2 p-2 bg-gray-700 rounded">
+              <StreamlabsFilterEditor
+                {match}
+                onchange={(newMatch) => {
+                  reward.on.matches[index] = newMatch;
+                  $rewardStore = { ...$rewardStore };
+                }}
+              />
+              <Minus
+                class="inline ml-2 cursor-pointer hover:text-gray-300"
+                onclick={() => {
+                  reward.on.matches.splice(index, 1);
+                  $rewardStore = { ...$rewardStore };
+                }}
+              />
+            </div>
+          {/each}
         </div>
       {/if}
     </div>

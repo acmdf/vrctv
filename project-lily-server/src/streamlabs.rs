@@ -16,6 +16,8 @@ use crate::{
 };
 /// IMPORTANT NOTE: Streamlabs uses OAuth2 tokens that do NOT expire
 
+pub mod socket;
+
 #[derive(Debug, Clone)]
 pub struct UserToken {
     /// The access token used to authenticate requests with

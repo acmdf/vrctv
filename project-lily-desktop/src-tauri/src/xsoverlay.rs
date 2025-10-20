@@ -1,6 +1,7 @@
 // Code adapted from https://github.com/bluskript/xsoverlay-notifier/blob/master/src/main.rs
 
 use anyhow::Context;
+use log::info;
 use serde::{Deserialize, Serialize};
 use specta::Type;
 use tauri::Manager;
@@ -54,7 +55,7 @@ pub async fn xsoverlay_notifier(
 ) -> anyhow::Result<()> {
     let socket = connect_udp(&host, port).await?;
     while let Some(msg) = rx.recv().await {
-        println!("Sending notification from {}", msg.source_app);
+        info!("Sending notification from {}", msg.source_app);
         let data = serde_json::to_string(&msg)?;
         socket
             .send(data.as_bytes())

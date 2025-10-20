@@ -45,7 +45,7 @@ export async function handleTwitchEvent(event: TwitchEventSource) {
             }
 
             console.log(`Matched reward ${reward.title} for event ${JSON.stringify(event)}`);
-            addReward(reward, event);
+            addReward(reward);
         }
     }
 }

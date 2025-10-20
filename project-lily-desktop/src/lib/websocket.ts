@@ -4,7 +4,7 @@ import { clientStateStore, customRewardsStore, eventLogStore, TaskState, taskSta
 import toast from "svelte-french-toast";
 import { debug, error, info } from "@tauri-apps/plugin-log";
 import { commands } from "../bindings";
-import { sendNotification } from "@tauri-apps/plugin-notification";
+import { isPermissionGranted, requestPermission, sendNotification } from "@tauri-apps/plugin-notification";
 import { writable } from "svelte/store";
 import { handleTwitchEvent } from "./twitch";
 import type WebSocket from "@tauri-apps/plugin-websocket";
@@ -102,6 +102,33 @@ export function onConnect(i: WebSocket, retryMethod: () => void): ServerConnecti
     return conn;
 }
 
+export async function sendNotif(title: string, message: string) {
+    info(`Sending notification: ${title} - ${message}`);
+    let permissionGranted = await isPermissionGranted();
+    if (!permissionGranted) {
+        const permission = await requestPermission();
+        permissionGranted = permission === 'granted';
+    }
+    if (permissionGranted) {
+        await sendNotification({ title, body: message });
+    }
+    commands.sendNotification({
+        messageType: 1,
+        index: 0,
+        timeout: 5,
+        height: 175,
+        opacity: 1,
+        volume: 1,
+        audioPath: "default",
+        title,
+        content: message,
+        useBase64Icon: false,
+        icon: "default",
+        sourceApp: "Project Lily"
+    });
+}
+
+
 export function handleMessage(message: MessageKind<"Text", string>) {
     let parsed = ServerConnection.parse_message(message);
 
@@ -142,21 +169,7 @@ export function handleMessage(message: MessageKind<"Text", string>) {
             }
             break;
         case "notify":
-            sendNotification({ title: parsed.title, body: parsed.message });
-            commands.sendNotification({
-                messageType: 1,
-                index: 0,
-                timeout: 5,
-                height: 175,
-                opacity: 1,
-                volume: 1,
-                audioPath: "default",
-                title: parsed.title,
-                content: parsed.message,
-                useBase64Icon: false,
-                icon: "default",
-                sourceApp: "Project Lily"
-            });
+            sendNotif(parsed.title, parsed.message);
             break;
         case "taskResponse":
             taskStateStore.update(state => ({

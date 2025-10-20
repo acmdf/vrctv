@@ -54,14 +54,16 @@ impl EventSubWebsocket {
     /// Handle a single iteration of the websocket connection
     /// Returns Ok(true) if you should continue running, Ok(false) if you should stop
     pub async fn run(&mut self) -> Result<(bool, Option<Event>)> {
-        let mut connection = match self.connection.take() {
+        let connection = match &mut self.connection {
             Some(conn) => conn,
-            None => self.connect().await?,
+            None => {
+                let conn = self.connect().await?;
+                self.connection = Some(conn);
+                &mut self.connection.as_mut().unwrap()
+            }
         };
 
         if let Some(msg) = connection.next().await {
-            self.connection = Some(connection);
-
             let msg = match msg {
                 Err(tungstenite::Error::Protocol(
                     tungstenite::error::ProtocolError::ResetWithoutClosingHandshake,
@@ -84,11 +86,11 @@ impl EventSubWebsocket {
     }
 
     pub async fn disconnect(&mut self) -> Result<()> {
+        // Pull the connection out of self to take ownership
         if let Some(mut connection) = self.connection.take() {
             connection.close(None).await?;
             info!("disconnected from twitch eventsub websocket");
         }
-        self.connection = None;
         Ok(())
     }
 

@@ -100,23 +100,38 @@ pub struct TwitchEvent {
 #[ts(export)]
 #[serde(tag = "type")]
 pub enum TwitchEventSource {
-    ChannelPoints { reward_id: String, reward_name: String },
-    BitDonation { amount: u32, message: Option<String>, emojis: Option<Vec<String>> },
-    Whisper { message: String },
-    Message { message: String },
+    ChannelPoints {
+        reward_id: String,
+        reward_name: String,
+    },
+    BitDonation {
+        amount: u32,
+        message: Option<String>,
+        emojis: Option<Vec<String>>,
+    },
+    Whisper {
+        message: String,
+    },
+    Message {
+        message: String,
+    },
 }
 
 #[derive(TS, Serialize, Deserialize, Clone, Debug)]
 #[ts(export)]
 pub struct StreamLabsEvent {
-    pub event_key: String,
-    pub event_source: StreamLabsEventSource,
+    pub event_id: Option<String>,
+    #[serde(rename = "for")]
+    pub for_: Option<String>,
+    pub message: serde_json::Value,
+    #[serde(rename = "type")]
+    pub type_: String,
 }
 
 #[derive(TS, Serialize, Deserialize, Clone, Debug)]
 #[ts(export)]
-pub enum StreamLabsEventSource {
-    Donation,
+pub struct StreamLabsEvents {
+    pub events: Vec<StreamLabsEvent>,
 }
 
 #[derive(TS, Serialize, Deserialize, Clone, Debug)]
@@ -141,13 +156,11 @@ pub struct TaskResponse {
 pub enum ServerMessage {
     ConnectResponse(ConnectResponse),
     CodeResponse(CodeResponse),
-    CustomRewards {
-        rewards: Vec<CustomRewardResponse>
-    },
+    CustomRewards { rewards: Vec<CustomRewardResponse> },
     Notify(Notify),
     ChangeAvatar(ChangeAvatar),
     TwitchEvent(TwitchEvent),
-    StreamLabsEvent(StreamLabsEvent),
+    StreamLabsEvent(StreamLabsEvents),
     Error(ErrorMessage),
     TaskResponse(TaskResponse),
 }

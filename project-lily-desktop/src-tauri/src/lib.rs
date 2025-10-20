@@ -7,10 +7,10 @@ use specta::Type;
 use specta_typescript::Typescript;
 use tauri::Manager;
 use tauri_specta::{collect_commands, collect_events, Builder, Event};
-use tokio::sync::mpsc;
+use tokio::{sync::mpsc, time::sleep};
 
 use crate::{
-    avatars::{change_avatar, fetch_avatars},
+    avatars::{change_avatar, fetch_avatar_osc, fetch_avatars, set_osc},
     osc::osc_message_broadcaster,
     xsoverlay::{send_notification, xsoverlay_notifier},
 };
@@ -56,7 +56,9 @@ pub fn run() {
     let builder = Builder::<tauri::Wry>::new()
         .commands(collect_commands![
             fetch_avatars,
+            fetch_avatar_osc,
             change_avatar,
+            set_osc,
             send_notification
         ])
         .events(collect_events![OscChangeEvent, ServiceStatusEvent]);
@@ -146,14 +148,14 @@ pub fn run() {
             let (tx, mut rx) = mpsc::unbounded_channel();
 
             tauri::async_runtime::spawn(async move {
-                for _ in 0..5 {
+                loop {
                     let res = xsoverlay_notifier(&mut rx, &"127.0.0.1".to_string(), 42069).await;
                     error!(
                         "XSOverlay notification sender died unexpectedly: {:?}, restarting sender",
                         res
                     );
+                    sleep(Duration::from_secs(2)).await;
                 }
-                error!("XSOverlay notification sender died too many times, stopping restarts");
             });
             app.manage(tx);
 

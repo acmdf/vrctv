@@ -3,7 +3,7 @@ import type { TwitchEventSource } from "../../../project-lily-common/bindings/Tw
 import { currentReward, rewardQueue, rewardStore, type RewardStoreState } from "./stores";
 import { commands } from "../bindings";
 
-export async function addReward(reward: RewardStoreState["rewards"][0], event: TwitchEventSource) {
+export async function addReward(reward: RewardStoreState["rewards"][0]) {
     let queue = get(rewardQueue);
     rewardQueue.update((q) => [...q, reward]);
 
@@ -11,10 +11,10 @@ export async function addReward(reward: RewardStoreState["rewards"][0], event: T
         return;
     }
 
-    handleReward(reward, event);
+    handleReward(reward);
 }
 
-async function handleReward(reward: RewardStoreState["rewards"][0], event: TwitchEventSource) {
+async function handleReward(reward: RewardStoreState["rewards"][0]) {
     await commands.changeAvatar(reward.setsAvatar ?? get(rewardStore).baseAvatarId ?? "");
     currentReward.set(reward);
 
@@ -23,7 +23,7 @@ async function handleReward(reward: RewardStoreState["rewards"][0], event: Twitc
         queue.shift();
         rewardQueue.set(queue);
         if (queue.length > 0) {
-            handleReward(queue[0], event);
+            handleReward(queue[0]);
         } else {
             let baseAvatarId = get(rewardStore).baseAvatarId ?? "";
             await commands.changeAvatar(baseAvatarId);

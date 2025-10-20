@@ -5,8 +5,10 @@ use futures_util::{SinkExt, StreamExt};
 use log::{debug, error, info};
 use project_lily_common::{
     ChangeAvatar, ClientMessage, ConnectRequest, ConnectResponse, ErrorMessage, Notify,
-    ServerMessage, TaskResponse, TwitchEvent, TwitchEventSource,
+    ServerMessage, StreamLabsEvent, StreamLabsEvents, TaskResponse, TwitchEvent, TwitchEventSource,
 };
+use rust_socketio::Payload as SocketioPayload;
+use serde_json::Value;
 use tokio::sync::{
     Mutex,
     mpsc::{self, Sender},
@@ -21,7 +23,7 @@ use crate::{
     AppState,
     db::Database,
     entities::{ActiveKey, ActiveStreamLabsKey, ActiveTwitchKey},
-    streamlabs,
+    streamlabs::{self, socket::SocketioConnection},
     twitch::{eventsub::EventSubWebsocket, handle_twitch_trigger},
 };
 
@@ -38,8 +40,8 @@ pub struct ClientConnection {
     pub sender: Vec<Sender<Message>>,
     pub context: Arc<Mutex<ClientContext>>,
 
-    /// The url to use for websocket
     pub twitch_connection: Option<Arc<Mutex<EventSubWebsocket>>>,
+    pub streamlabs_connection: Option<Arc<Mutex<SocketioConnection>>>,
 }
 
 impl ClientConnection {
@@ -95,7 +97,9 @@ pub async fn handle_client(
         twitch: None,
         streamlabs: None,
     }));
-    let mut connection = None;
+    let mut t_connection = None;
+    let mut sl_connection = None;
+    let (transmitter, mut receiver) = mpsc::unbounded_channel::<SocketioPayload>();
     let (mut tx, mut rx) = socket.split();
 
     let (table_tx, mut table_rx) = mpsc::channel::<Message>(32);
@@ -117,7 +121,28 @@ pub async fn handle_client(
                         }))),
                         None => None,
                     };
-                    connection = twitch_connection.clone();
+                    t_connection = twitch_connection.clone();
+                    let streamlabs_connection = match &client_context.lock().await.streamlabs {
+                        Some(token) => Some(Arc::new(Mutex::new({
+                            let conn = SocketioConnection::get_connection(
+                                transmitter.clone(),
+                                token.socket_token.as_str(),
+                            )
+                            .await;
+                            match conn {
+                                Ok(c) => {
+                                    info!("Connected to Streamlabs socketio for {}", who);
+                                    c
+                                }
+                                Err(e) => {
+                                    error!("Error connecting to Streamlabs socketio: {}", e);
+                                    continue;
+                                }
+                            }
+                        }))),
+                        None => None,
+                    };
+                    sl_connection = streamlabs_connection.clone();
 
                     // Add the sender to the connection table
                     table.insert(
@@ -126,6 +151,7 @@ pub async fn handle_client(
                             sender: vec![table_tx.clone()],
                             context: client_context.clone(),
                             twitch_connection,
+                            streamlabs_connection,
                         },
                     );
                 } else {
@@ -135,7 +161,11 @@ pub async fn handle_client(
                         if client.sender.iter().any(|s| s.same_channel(&table_tx)) {
                             // We already have this sender, do nothing
                         } else {
-                            info!("Adding new sender for existing connection: {}, has {}", state_token, client.sender.len());
+                            info!(
+                                "Adding new sender for existing connection: {}, has {}",
+                                state_token,
+                                client.sender.len()
+                            );
                             client.sender.push(table_tx.clone());
                         }
                     }
@@ -172,8 +202,69 @@ pub async fn handle_client(
                     break;
                 }
             }
+            Some(streamlabs_message) = async {
+                if let Some(conn) = sl_connection.clone() {
+                    Some(conn.lock().await.run(&mut receiver).await)
+                } else {
+                    None
+                }
+            } => {
+                match streamlabs_message {
+                    Ok((true, Some(event))) => {
+                        info!("Received Streamlabs event for {}: {:?}", who, event);
+
+                        let events = match event {
+                            SocketioPayload::Binary(data) => vec![StreamLabsEvent {
+                                event_id: None,
+                                for_: None,
+                                message: serde_json::from_slice(&data).unwrap_or(Value::Null),
+                                type_: "unknown".into(),
+                            }],
+                            SocketioPayload::Text(data) => data
+                                .into_iter()
+                                .map(|d| serde_json::from_value::<StreamLabsEvent>(d.clone())
+                                    .unwrap_or(StreamLabsEvent {
+                                        event_id: None,
+                                        for_: None,
+                                        message: d,
+                                        type_: "unknown".into(),
+                                    }))
+                                .collect(),
+                            _ => vec![],
+                        };
+
+                        let senders = {
+                            let table = app_state.connection_table.lock().await;
+                            if let Some(client) = &client_context.lock().await.state_token {
+                                table.get(client).cloned()
+                            } else {
+                                None
+                            }
+                        };
+
+                        if let Some(conn) = senders {
+                            if let Err(e) = send_all_message(ServerMessage::StreamLabsEvent(StreamLabsEvents { events }), &conn).await {
+                                error!("Error handling Streamlabs event for {}: {}", who, e);
+                                let _ = send_error(e, "streamlabs", &table_tx, -1).await;
+                            }
+                        }
+                    }
+                    Ok((true, None)) => {
+                        info!("No Streamlabs event received for {}", who);
+                    }
+                    Ok((false, _)) => {
+                        info!("Streamlabs connection closed for {}", who);
+                        break;
+                    }
+                    Err(e) => {
+                        error!("Error receiving Streamlabs message for {}: {}", who, e);
+                        let _ = send_error(e, "streamlabs", &table_tx, -1).await;
+                        break;
+                    }
+                }
+            }
             Some(twitch_message) = async {
-                if let Some(conn) = connection.clone() {
+                if let Some(conn) = t_connection.clone() {
                     let lock = conn.lock().await.run().await;
                     Some(lock)
                 } else {
@@ -240,6 +331,8 @@ pub async fn handle_client(
 
     // returning from the handler closes the websocket connection
     println!("Websocket context {who} destroyed");
+    // Make sure the socket is properly closed
+    tx.close().await.unwrap_or(());
 }
 
 pub async fn send_message(msg: ServerMessage, tx: &Sender<Message>) -> Result<(), String> {

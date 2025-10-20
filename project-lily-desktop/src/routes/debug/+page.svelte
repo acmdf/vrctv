@@ -9,13 +9,34 @@
         rewardStore,
         customRewardsStore,
         eventLogStore,
-        rewardQueue,currentReward
+        rewardQueue,
+        currentReward,
+        defaultRewardStore,
     } from "../../lib/stores";
     import type { PageProps } from "./$types";
     import { warn } from "@tauri-apps/plugin-log";
-    import { serverConnection } from "$lib/websocket";
+    import { sendNotif, serverConnection } from "$lib/websocket";
+    import toast from "svelte-french-toast";
 
     let { data }: PageProps = $props();
+
+    let setParam = $state<string>("");
+    let setValue = $state<string>("");
+    let avatarId = $state<string>("");
+
+    let params = $derived(await commands.fetchAvatarOsc(avatarId));
+
+    $effect(() => {
+        if (params.status !== "ok") {
+            toast.error(`Error fetching OSC params: ${params.error}`);
+        }
+    });
+
+    let avatars = $derived(
+        data.status === "ok"
+            ? data.data.sort((a, b) => a.name.localeCompare(b.name))
+            : [],
+    );
 
     function formatValue(value: any): string {
         if (typeof value === "object") {
@@ -39,6 +60,65 @@
 </script>
 
 <h1 class="text-3xl font-bold mb-4">Debug Information</h1>
+<div class="flex w-full space-x-4 mb-4">
+    <button
+        class="p-8 rounded bg-grey-800 text-center flex-1 hover:bg-gray-700"
+        onclick={() =>
+            sendNotif(
+                "Test Notification",
+                "This is a test notification from the debug page.",
+            )}
+    >
+        Test notification
+    </button>
+    <button
+        class="p-8 rounded bg-grey-800 text-center flex-1 hover:bg-gray-700"
+        onclick={() => rewardStore.set(defaultRewardStore)}
+    >
+        Set default rewards
+    </button>
+</div>
+
+<h2 class="text-2xl font-bold mb-2">Set OSC Parameter</h2>
+<div class="mb-4 flex flex-wrap">
+    <select
+        bind:value={avatarId}
+        class="p-2 bg-gray-800 text-white rounded w-1/3 mr-2 mb-2"
+    >
+        {#each avatars as avatar}
+            <option value={avatar.id}>{avatar.name} ({avatar.id})</option>
+        {/each}
+    </select>
+    {#if params.status === "ok"}
+        <select
+            bind:value={setParam}
+            class="p-2 bg-gray-800 text-white rounded w-1/3 mr-2 mb-2"
+        >
+            {#each params.data as param}
+                <option value={`/avatar/parameters/${param}`}>{param}</option>
+            {/each}
+        </select>
+        <input
+            type="text"
+            placeholder="Parameter Value"
+            bind:value={setValue}
+            class="p-2 bg-gray-800 text-white rounded w-1/3 mr-2"
+        />
+        <button
+            class="p-2 bg-gray-800 text-white rounded hover:bg-gray-700"
+            onclick={async () => {
+                toast.success(
+                    JSON.stringify(await commands.setOsc(setParam, setValue)),
+                );
+            }}
+        >
+            Set Parameter
+        </button>
+    {:else}
+        <p class="text-red-500">Error: {params.error}</p>
+    {/if}
+</div>
+
 <h2 class="text-2xl font-bold mb-2">Client Info</h2>
 <div class="mb-4">
     {#each Object.entries($clientStateStore) as [key, value]}
@@ -137,7 +217,7 @@
 {#if data.status == "ok"}
     <h2 class="text-2xl font-bold mb-2">Fetched Avatars</h2>
     <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-        {#each data.data as avatar}
+        {#each avatars as avatar}
             <button
                 class="flex flex-col items-center p-2 bg-gray-800 rounded cursor-pointer hover:bg-gray-700"
                 onclick={() => commands.changeAvatar(avatar.id)}
