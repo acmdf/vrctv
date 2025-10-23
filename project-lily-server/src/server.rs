@@ -188,6 +188,7 @@ pub async fn handle_client(
                             break;
                         } else if let Ok(false) = message_res {
                             info!("Closing connection from {}", who);
+                            break;
                         }
                     }
                     Err(e) => {
@@ -197,7 +198,7 @@ pub async fn handle_client(
                 }
             }
             Some(msg) = table_rx.recv() => {
-                info!("Sending message to {}: {:?}", who, msg);
+                debug!("Sending message to {}: {:?}", who, msg);
                 // send message to client
                 if let Err(e) = tx.send(msg).await {
                     error!("Error sending message to {}: {}", who, e);
@@ -317,16 +318,33 @@ pub async fn handle_client(
     // If we have a state token, remove the sender from the connection table
     if let Some(state_token) = &client_context.lock().await.state_token {
         let mut table = app_state.connection_table.lock().await;
+        let mut should_remove = false;
+
         if let Some(client) = table.get_mut(state_token) {
             client.sender.retain(|s| !s.same_channel(&table_tx));
-            if client.sender.is_empty() {
-                if let Some(twitch_connection) = &client.twitch_connection {
+
+            should_remove = client.sender.is_empty();
+        }
+
+        if should_remove {
+            let client = table.remove(state_token);
+
+            if let Some(client) = client {
+                if let Some(twitch_connection) = client.twitch_connection {
                     let mut twitch_connection = twitch_connection.lock().await;
                     if let Err(e) = twitch_connection.disconnect().await {
                         error!("Error disconnecting Twitch connection for {}: {}", who, e);
                     }
                 }
-                table.remove(state_token);
+                if let Some(streamlabs_connection) = client.streamlabs_connection {
+                    let mut streamlabs_connection = streamlabs_connection.lock().await;
+                    if let Err(e) = streamlabs_connection.disconnect().await {
+                        error!(
+                            "Error disconnecting Streamlabs connection for {}: {}",
+                            who, e
+                        );
+                    }
+                }
             }
         }
     }
@@ -560,7 +578,9 @@ pub async fn handle_message(
                     }
 
                     let twitch = context.twitch.as_mut().unwrap();
-                    if handle_twitch_trigger(&http_client, twitch, trigger_request.clone(), tx).await? {
+                    if handle_twitch_trigger(&http_client, twitch, trigger_request.clone(), tx)
+                        .await?
+                    {
                         // Token was refreshed, retry once
                         handle_twitch_trigger(&http_client, twitch, trigger_request, tx).await?;
                     }
