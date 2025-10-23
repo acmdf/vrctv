@@ -49,7 +49,7 @@
                     info("WebSocket binary message received: " + message.data);
                     break;
                 case "Text":
-                    info(`Websocket text message received: ${message.data}`);
+                    debug(`Websocket text message received: ${message.data}`);
                     handleMessage(message);
                     break;
             }

@@ -36,7 +36,9 @@ impl SocketioConnection {
 
                 async move {
                     info!("received streamlabs event: {:?}", msg);
-                    tx.send(msg).unwrap();
+                    tx.send(msg).unwrap_or_else(|e| {
+                        warn!("Failed to send streamlabs event to channel: {}", e);
+                    });
                 }
                 .boxed()
             })

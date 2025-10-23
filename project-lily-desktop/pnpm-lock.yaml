@@ -38,9 +38,6 @@ importers:
       tailwindcss:
         specifier: ^4.1.14
         version: 4.1.14
-      websocket-ts:
-        specifier: ^2.2.1
-        version: 2.2.1
     devDependencies:
       '@sveltejs/adapter-static':
         specifier: ^3.0.6
@@ -1180,9 +1177,6 @@ packages:
       vite:
         optional: true
 
-  websocket-ts@2.2.1:
-    resolution: {integrity: sha512-YKPDfxlK5qOheLZ2bTIiktZO1bpfGdNCPJmTEaPW7G9UXI1GKjDdeacOrsULUS000OPNxDVOyAuKLuIWPqWM0Q==}
-
   yallist@5.0.0:
     resolution: {integrity: sha512-YgvUTfwqyc7UXVMrB+SImsVYSmTS8X/tSrtdNZMImM+n7+QTriRXyXim0mBrTXNeqzVF0KWGgHPeiyViFFrNDw==}
     engines: {node: '>=18'}
@@ -2078,8 +2072,6 @@ snapshots:
   vitefu@1.1.1(vite@6.3.6(jiti@2.6.1)(lightningcss@1.30.1)(sass-embedded@1.93.2)(sass@1.93.2)):
     optionalDependencies:
       vite: 6.3.6(jiti@2.6.1)(lightningcss@1.30.1)(sass-embedded@1.93.2)(sass@1.93.2)
-
-  websocket-ts@2.2.1: {}
 
   yallist@5.0.0: {}
 
