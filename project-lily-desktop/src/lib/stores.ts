@@ -59,7 +59,7 @@ export const oscStateStore = writable<{ [key: string]: OscValue }>({});
 export const serviceStateStore = writable<Record<Service, ServiceStatus>>({
     "Osc": "Stopped"
 });
-export const taskStateStore = writable<{ [key: string]: { state: TaskState; reason: string } }>({});
+export const taskStateStore = writable<{ [key: string]: { state: TaskState; reason: string; error?: string; } }>({});
 export const rewardStore = persisted(
     "rewardStore",
     defaultRewardStore

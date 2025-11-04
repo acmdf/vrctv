@@ -166,7 +166,8 @@ export function handleMessage(message: MessageKind<"Text", string>) {
                     ...state,
                     [parsed.request_id]: {
                         state: TaskState.Failed,
-                        reason: parsed.message || "Unknown error"
+                        reason: state[parsed.request_id]?.reason || "Unknown",
+                        error: parsed.message || "Unknown error"
                     }
                 }));
             }
@@ -179,7 +180,8 @@ export function handleMessage(message: MessageKind<"Text", string>) {
                 ...state,
                 [parsed.request_id]: {
                     state: parsed.success ? TaskState.Completed : TaskState.Failed,
-                    reason: state[parsed.request_id]?.reason || "Unknown"
+                    reason: state[parsed.request_id]?.reason || "Unknown",
+                    error: parsed.success ? undefined : (parsed.message || "Unknown error")
                 }
             }));
             info(`Task ${parsed.request_id} completed with success: ${parsed.success}`);

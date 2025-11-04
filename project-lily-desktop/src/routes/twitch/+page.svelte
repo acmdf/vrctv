@@ -87,17 +87,18 @@
     <button
       class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
       onclick={() => {
-        currentCustomRewards = {
+        currentCustomRewards = [
           ...currentCustomRewards,
-          [`new_reward_${Date.now()}`]: {
+          {
             id: `new_reward_${Date.now()}`,
             title: "New Reward",
             prompt: "",
             cost: 100,
             is_enabled: true,
             global_cooldown_seconds: 0,
+            is_global_cooldown_enabled: false,
           },
-        };
+        ];
         touched = true;
       }}
     >
