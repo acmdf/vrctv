@@ -1,11 +1,13 @@
 // Code adapted from https://github.com/bluskript/xsoverlay-notifier/blob/master/src/main.rs
 
 use anyhow::Context;
+use futures_util::sink::SinkExt;
 use log::info;
 use serde::{Deserialize, Serialize};
 use specta::Type;
 use tauri::Manager;
 use tokio::{net::UdpSocket, sync::mpsc};
+use tokio_tungstenite::{connect_async, tungstenite::client::IntoClientRequest};
 
 #[derive(Serialize, Deserialize, Debug, Type)]
 #[serde(rename_all = "camelCase")]
@@ -36,6 +38,16 @@ pub struct XSOverlayMessage {
     pub source_app: String,
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct ApiObject {
+    sender: String,
+    target: String,
+    command: String,
+    json_data: String,
+    raw_data: Option<String>,
+}
+
 async fn connect_udp(host: &String, port: usize) -> anyhow::Result<UdpSocket> {
     // using port 0 so the OS allocates a available port automatically
     let socket = UdpSocket::bind("0.0.0.0:0")
@@ -52,15 +64,57 @@ pub async fn xsoverlay_notifier(
     rx: &mut mpsc::UnboundedReceiver<XSOverlayMessage>,
     host: &String,
     port: usize,
+    ws_port: usize,
 ) -> anyhow::Result<()> {
-    let socket = connect_udp(&host, port).await?;
+    let request = format!("ws://{}:{}/", host, ws_port).into_client_request()?;
+
+    let socket = connect_udp(&host, port).await;
+    let mut ws_socket = connect_async(request).await;
+
+    // Make sure at least one connection succeeded
+    if socket.is_err() && ws_socket.is_err() {
+        return Err(anyhow::anyhow!(
+            "Failed to connect to XSOverlay UDP and WebSocket sockets"
+        ));
+    }
+
+    if ws_socket.is_ok() {
+        info!(
+            "Connected to XSOverlay WebSocket at ws://{}:{}",
+            host, ws_port
+        );
+    }
+    if socket.is_ok() {
+        info!("Connected to XSOverlay UDP socket at {}:{}", host, port);
+    }
+
+    info!("XSOverlay Notifier started, waiting for messages...");
+
     while let Some(msg) = rx.recv().await {
         info!("Sending notification from {}", msg.source_app);
-        let data = serde_json::to_string(&msg)?;
-        socket
-            .send(data.as_bytes())
-            .await
-            .context("Failed to send notification to XSOverlay UDP socket")?;
+        let data = serde_json::to_string(&ApiObject {
+            sender: "ProjectLily".to_string(),
+            target: "xsoverlay".to_string(),
+            command: "SendNotification".to_string(),
+            json_data: serde_json::to_string(&msg).unwrap(),
+            raw_data: None,
+        })?;
+        
+        if let Ok(ws_socket) = ws_socket.as_mut() {
+            info!("Sending via WebSocket");
+
+            ws_socket
+                .0
+                .send(tokio_tungstenite::tungstenite::Message::Text(data.into()))
+                .await
+                .context("Failed to send notification to XSOverlay WebSocket")?;
+        } else if let Ok(socket) = socket.as_ref() {
+            info!("Sending via UDP socket");
+            socket
+                .send(data.as_bytes())
+                .await
+                .context("Failed to send notification to XSOverlay UDP socket")?;
+        }
     }
     Ok(())
 }

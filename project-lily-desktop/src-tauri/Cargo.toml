@@ -34,3 +34,5 @@ glob = "0.3.3"
 tauri-plugin-log = "2"
 tauri-plugin-notification = "2"
 tauri-plugin-websocket = { version = "2", features = ["native-tls"] }
+tokio-tungstenite = { version = "0.28.0", features = ["native-tls"] }
+futures-util = "0.3.31"

@@ -3557,6 +3557,7 @@ name = "project-lily-desktop"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "futures-util",
  "glob",
  "log",
  "platform-dirs",
@@ -3572,8 +3573,13 @@ dependencies = [
  "tauri-plugin-websocket",
  "tauri-specta",
  "tokio",
+ "tokio-tungstenite 0.28.0",
  "vrchat_osc",
 ]
+
+[[package]]
+name = "project-lily-overlay"
+version = "0.1.0"
 
 [[package]]
 name = "project-lily-server"

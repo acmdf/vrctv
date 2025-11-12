@@ -110,12 +110,12 @@ export async function sendNotif(title: string, message: string) {
         permissionGranted = permission === 'granted';
     }
     if (permissionGranted) {
-        await sendNotification({ title, body: message });
+        await sendNotification({ title, body: message, autoCancel: true });
     }
     commands.sendNotification({
         messageType: 1,
         index: 0,
-        timeout: 5,
+        timeout: 2,
         height: 175,
         opacity: 1,
         volume: 1,

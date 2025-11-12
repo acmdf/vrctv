@@ -149,7 +149,7 @@ pub fn run() {
 
             tauri::async_runtime::spawn(async move {
                 loop {
-                    let res = xsoverlay_notifier(&mut rx, &"127.0.0.1".to_string(), 42069).await;
+                    let res = xsoverlay_notifier(&mut rx, &"127.0.0.1".to_string(), 42069, 42070).await;
                     error!(
                         "XSOverlay notification sender died unexpectedly: {:?}, restarting sender",
                         res
