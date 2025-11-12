@@ -3,13 +3,15 @@
     import "../app.css";
 
     import toast, { Toaster } from "svelte-french-toast";
-    import { events } from "../bindings";
+    import { commands, events } from "../bindings";
     import { onMount } from "svelte";
     import Menu from "./menu.svelte";
     import Logo from "../components/logo.svelte";
     import StoreManager from "../components/storeManager.svelte";
     import ConnectionManager from "../components/connectionManager.svelte";
-    import { attachConsole } from "@tauri-apps/plugin-log";
+    import { attachConsole, info } from "@tauri-apps/plugin-log";
+    import { overlays, overlayVisibleStore } from "$lib/stores";
+    import { currentOverlayState } from "$lib/overlays";
 
     onMount(async () => {
         await attachConsole();
@@ -28,6 +30,22 @@
                 );
             }
         });
+    });
+
+    // Subscribe to the overlays store
+    $effect(() => {
+        info(
+            "Overlays updated: " +
+                JSON.stringify($overlays, (k, v) => {
+                    if (k === "url") {
+                        return v.slice(0, 20) + "...";
+                    }
+                    return v;
+                }),
+        );
+        commands.updateOverlays(
+            currentOverlayState($overlayVisibleStore, $overlays),
+        );
     });
 </script>
 

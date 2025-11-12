@@ -99,7 +99,7 @@ pub async fn xsoverlay_notifier(
             json_data: serde_json::to_string(&msg).unwrap(),
             raw_data: None,
         })?;
-        
+
         if let Ok(ws_socket) = ws_socket.as_mut() {
             info!("Sending via WebSocket");
 

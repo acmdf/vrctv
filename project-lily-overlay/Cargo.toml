@@ -1,0 +1,16 @@
+[package]
+name = "project-lily-overlay"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+axum = { version = "0.8.6", features = ["http2", "ws"] }
+axum-extra = { version = "0.10.3", features = ["typed-header"] }
+anyhow = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true }
+tokio-tungstenite = { version = "0.28.0", features = ["native-tls"] }
+log = { workspace = true }
+tower-http = { version = "0.6.6", features = ["trace", "timeout"] }
+specta = { workspace = true }

@@ -1,22 +1,28 @@
 use std::time::Duration;
 
 use log::{error, LevelFilter};
+use project_lily_overlay::start_server;
 use serde::{Deserialize, Serialize};
 use specta::Type;
 #[cfg(debug_assertions)]
 use specta_typescript::Typescript;
 use tauri::Manager;
 use tauri_specta::{collect_commands, collect_events, Builder, Event};
-use tokio::{sync::mpsc, time::sleep};
+use tokio::{
+    sync::{broadcast, mpsc, watch},
+    time::sleep,
+};
 
 use crate::{
     avatars::{change_avatar, fetch_avatar_osc, fetch_avatars, set_osc},
     osc::osc_message_broadcaster,
+    overlay::{send_overlay_command, update_overlays},
     xsoverlay::{send_notification, xsoverlay_notifier},
 };
 
 mod avatars;
 mod osc;
+mod overlay;
 mod xsoverlay;
 
 #[derive(Serialize, Deserialize, Debug, Clone, Type, Event)]
@@ -42,6 +48,7 @@ pub struct ServiceStatusEvent {
 #[derive(Serialize, Deserialize, Debug, Clone, Type)]
 pub enum Service {
     Osc,
+    Overlay,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Type)]
@@ -59,7 +66,9 @@ pub fn run() {
             fetch_avatar_osc,
             change_avatar,
             set_osc,
-            send_notification
+            send_notification,
+            send_overlay_command,
+            update_overlays,
         ])
         .events(collect_events![OscChangeEvent, ServiceStatusEvent]);
 
@@ -69,6 +78,8 @@ pub fn run() {
         .expect("Failed to export typescript bindings");
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_websocket::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(
@@ -86,6 +97,61 @@ pub fn run() {
         .setup(move |app| {
             // This is also required if you want to use events
             builder.mount_events(app);
+
+            let (tx, _) = broadcast::channel(16);
+            let (watch_tx, watch_rx) = watch::channel(Vec::new());
+            let state = project_lily_overlay::AppState {
+                lookup_table: watch_rx,
+            };
+
+            app.manage(watch_tx);
+            app.manage(tx.clone());
+
+            let overlay_handle = app.handle().clone();
+            tauri::async_runtime::spawn(async move {
+                tokio::time::sleep(Duration::from_secs(1)).await;
+
+                loop {
+                    ServiceStatusEvent {
+                        service: Service::Overlay,
+                        status: ServiceStatus::Started,
+                    }
+                    .emit(&overlay_handle)
+                    .unwrap_or_else(|e| {
+                        error!("Failed to emit service status event: {}", e);
+                    });
+
+                    match start_server(tx.clone(), state.clone()).await {
+                        Ok(_) => {
+                            ServiceStatusEvent {
+                                service: Service::Overlay,
+                                status: ServiceStatus::Stopped,
+                            }
+                            .emit(&overlay_handle)
+                            .unwrap_or_else(|e| {
+                                error!("Failed to emit service status event: {}", e);
+                            });
+                        }
+                        Err(e) => {
+                            error!("Overlay server encountered an error: {}", e);
+
+                            ServiceStatusEvent {
+                                service: Service::Overlay,
+                                status: ServiceStatus::Error(format!(
+                                    "Overlay server encountered an error: {}",
+                                    e
+                                )),
+                            }
+                            .emit(&overlay_handle)
+                            .unwrap_or_else(|e| {
+                                error!("Failed to emit service status event: {}", e);
+                            });
+                        }
+                    }
+
+                    tokio::time::sleep(Duration::from_secs(10)).await;
+                }
+            });
 
             let osc_handle = app.handle().clone();
             tauri::async_runtime::spawn(async move {
@@ -149,7 +215,8 @@ pub fn run() {
 
             tauri::async_runtime::spawn(async move {
                 loop {
-                    let res = xsoverlay_notifier(&mut rx, &"127.0.0.1".to_string(), 42069, 42070).await;
+                    let res =
+                        xsoverlay_notifier(&mut rx, &"127.0.0.1".to_string(), 42069, 42070).await;
                     error!(
                         "XSOverlay notification sender died unexpectedly: {:?}, restarting sender",
                         res

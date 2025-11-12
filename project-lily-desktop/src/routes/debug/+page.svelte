@@ -9,7 +9,7 @@
         rewardStore,
         customRewardsStore,
         eventLogStore,
-        rewardQueue,
+        avatarRewardQueue,
         currentReward,
         defaultRewardStore,
     } from "../../lib/stores";
@@ -169,7 +169,7 @@
 
 <h2 class="text-2xl font-bold mb-2">Current Queue</h2>
 <div class="mb-4 max-h-64 overflow-y-auto">
-    {#each $rewardQueue as reward, index (index)}
+    {#each $avatarRewardQueue as reward, index (index)}
         <div class="flex p-2 items-center border-b border-gray-700">
             <p class="text-md bg-gray-800 rounded p-2 mr-2">{index + 1}</p>
             {formatValue(reward)}

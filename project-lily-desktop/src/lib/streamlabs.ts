@@ -48,9 +48,6 @@ export async function handleStreamlabsEvent(event: StreamLabsEvent) {
                     // Checked the donation messages, and they might have matched already so for this type we can stop here
                     continue match;
             }
-
-            console.log(`Matched reward ${reward.title} for event ${JSON.stringify(event)}`);
-            addReward(reward);
         }
     }
 }

@@ -1,5 +1,10 @@
 <script lang="ts">
-  import { customRewardsStore, rewardStore, type Trigger } from "$lib/stores";
+  import {
+    customRewardsStore,
+    overlays,
+    rewardStore,
+    type Trigger,
+  } from "$lib/stores";
   import { Minus, Plus, RefreshCcw } from "@lucide/svelte";
   import type { PageProps } from "../$types";
   import type { Avatar, Result } from "../../bindings";
@@ -93,6 +98,7 @@
     class="ml-4 px-2 py-1 bg-gray-600 text-white rounded hover:bg-gray-700"
     onclick={() => {
       $rewardStore.rewards.push({
+        type: "avatar",
         setsAvatar: null,
         setParams: {},
         title: "New Reward",
@@ -133,55 +139,97 @@
       </div>
 
       <div class="mb-2">
-        Sets Avatar:
+        Type:
         <select
-          bind:value={reward.setsAvatar}
+          bind:value={reward.type}
           class="ml-2 p-1 bg-gray-700 text-white rounded"
-        >
-          <option value={null}>None</option>
-          {#each avatars as avatar}
-            <option value={avatar.id}>{avatar.name} ({avatar.id})</option>
-          {/each}
-        </select>
-      </div>
-      <div class="mb-2">
-        Sets Parameters:
-        <Plus
-          class="inline ml-2 cursor-pointer hover:text-gray-300"
-          onclick={() => {
-            let i = 1;
-            while (reward.setParams.hasOwnProperty(`new_param_${i}`)) {
-              i += 1;
+          onchange={() => {
+            if (reward.type === "avatar") {
+              reward.setsAvatar = null;
+              reward.setParams = {};
+            } else if (reward.type === "overlay") {
+              reward.overlay = -1;
+              reward.show = true;
             }
-            reward.setParams[`new_param_${i}`] = "value";
             $rewardStore = { ...$rewardStore };
           }}
-        />
-        {#each Object.entries($rewardStore.rewards[rewardId].setParams) as [key, value] (key)}
-          <div class="mt-2">
-            <ParameterEditor
-              avatarId={reward.setsAvatar ?? $rewardStore.baseAvatarId ?? ""}
-              param={key}
-              {value}
-              onChange={(param, val) => {
-                if (param !== key) {
-                  delete reward.setParams[key];
-                }
-                reward.setParams[param] = val;
-                $rewardStore = { ...$rewardStore };
-              }}
-            />
-
-            <Minus
-              class="inline ml-2 cursor-pointer hover:text-gray-300"
-              onclick={() => {
-                delete reward.setParams[key];
-                $rewardStore = { ...$rewardStore };
-              }}
-            />
-          </div>
-        {/each}
+        >
+          <option value="avatar">Avatar</option>
+          <option value="overlay">Overlay</option>
+        </select>
       </div>
+
+      {#if reward.type === "avatar"}
+        <div class="mb-2">
+          Sets Avatar:
+          <select
+            bind:value={reward.setsAvatar}
+            class="ml-2 p-1 bg-gray-700 text-white rounded"
+          >
+            <option value={null}>None</option>
+            {#each avatars as avatar}
+              <option value={avatar.id}>{avatar.name} ({avatar.id})</option>
+            {/each}
+          </select>
+        </div>
+        <div class="mb-2">
+          Sets Parameters:
+          <Plus
+            class="inline ml-2 cursor-pointer hover:text-gray-300"
+            onclick={() => {
+              let i = 1;
+              while (reward.setParams.hasOwnProperty(`new_param_${i}`)) {
+                i += 1;
+              }
+              reward.setParams[`new_param_${i}`] = "value";
+              $rewardStore = { ...$rewardStore };
+            }}
+          />
+          {#each Object.entries(reward.setParams) as [key, value] (key)}
+            <div class="mt-2">
+              <ParameterEditor
+                avatarId={reward.setsAvatar ?? $rewardStore.baseAvatarId ?? ""}
+                param={key}
+                {value}
+                onChange={(param, val) => {
+                  if (param !== key) {
+                    delete reward.setParams[key];
+                  }
+                  reward.setParams[param] = val;
+                  $rewardStore = { ...$rewardStore };
+                }}
+              />
+
+              <Minus
+                class="inline ml-2 cursor-pointer hover:text-gray-300"
+                onclick={() => {
+                  delete reward.setParams[key];
+                  $rewardStore = { ...$rewardStore };
+                }}
+              />
+            </div>
+          {/each}
+        </div>
+      {:else if reward.type === "overlay"}
+        <div class="mb-2">
+          Overlay:
+          <select
+            bind:value={reward.overlay}
+            class="ml-2 p-1 bg-gray-700 text-white rounded"
+          >
+            <option value={-1}>None</option>
+            {#each $overlays as overlay}
+              <option value={overlay.id}
+                >{overlay.name} (ID: {overlay.id})</option
+              >
+            {/each}
+          </select>
+        </div>
+        <div class="mb-2">
+          Show Overlay:
+          <input type="checkbox" bind:checked={reward.show} class="ml-2" />
+        </div>
+      {/if}
       <h3 class="text-xl font-bold mt-4 mb-2">
         Trigger On: <RefreshCcw
           class="inline ml-2 cursor-pointer hover:text-gray-300"

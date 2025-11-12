@@ -22,6 +22,6 @@ project-lily-common = { path = "../project-lily-common" }
 uuid = { version = "1.18.1", features = ["v4"] }
 twitch_api = { version = "0.7.2", features = ["client", "eventsub", "helix", "pubsub", "reqwest", "tracing"] }
 reqwest = { version = "0.12.23", features = ["json"] }
-anyhow = "1.0.100"
+anyhow = { workspace = true }
 tokio-tungstenite = { version = "0.28.0", features = ["native-tls", "url"] }
 rust_socketio = { version = "0.6.0", features = ["async"] }

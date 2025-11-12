@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Overlay {{OVERLAY_ID}}</title>
+</head>
+
+<body style="margin: 0; overflow: hidden;">
+    <img id="overlay-image" src="" style="width: 100%; height: 100%; object-fit: contain;" />
+    <script>
+        let overlayId = Number("{{OVERLAY_ID}}");
+
+        const ws = new WebSocket(`ws://${window.location.hostname}:2678/ws`);
+
+        ws.onopen = () => {
+            console.log("WebSocket connection established");
+            ws.send(JSON.stringify({ type: "SubscribeOverlay", data: overlayId }));
+        };
+
+        ws.onmessage = (event) => {
+            const message = JSON.parse(event.data);
+            const overlayImage = document.getElementById("overlay-image");
+            if (message.type === "UpdateData" && message.data.id === overlayId) {
+                const overlayData = message.data;
+                overlayImage.src = overlayData.url;
+                overlayImage.style.display = overlayData.visible ? "block" : "none";
+            }
+        };
+    </script>
+</body>
+
+</html>

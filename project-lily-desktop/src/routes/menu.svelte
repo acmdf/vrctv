@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { ArrowLeft, House, Bug, Menu, ThumbsUp, Twitch } from "@lucide/svelte";
+    import { ArrowLeft, House, Bug, Menu, ThumbsUp, Twitch, BookOpen } from "@lucide/svelte";
 
     let menuOpen = $state(false);
 
@@ -18,6 +18,11 @@
             name: "Rewards",
             href: "/rewards",
             icon: ThumbsUp,
+        },
+        {
+            name: "Overlays",
+            href: "/overlays",
+            icon: BookOpen,
         },
         {
             name: "Debug",
