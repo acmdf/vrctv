@@ -1,4 +1,4 @@
-import { writable } from "svelte/store";
+import { writable, type Writable } from "svelte/store";
 import type { OscValue, Service, ServiceStatus } from "../bindings";
 import type { ConnectResponse } from "../../../project-lily-common/bindings/ConnectResponse";
 import { persisted } from "svelte-persisted-store";
@@ -55,19 +55,20 @@ export const defaultRewardStore: RewardStoreState = {
     baseParams: {}
 };
 
-export const oscStateStore = writable<{ [key: string]: OscValue }>({});
-export const serviceStateStore = writable<Record<Service, ServiceStatus>>({
-    "Osc": "Stopped"
+export const oscStateStore: Writable<{ [key: string]: OscValue }> = writable({});
+export const serviceStateStore: Writable<Record<Service, ServiceStatus>> = writable({
+    "Osc": "Stopped",
+    "OBS": "Stopped",
 });
-export const taskStateStore = writable<{ [key: string]: { state: TaskState; reason: string; error?: string; } }>({});
-export const rewardStore = persisted(
+export const taskStateStore: Writable<{ [key: string]: { state: TaskState; reason: string; error?: string; } }> = writable({});
+export const rewardStore: Writable<RewardStoreState> = persisted(
     "rewardStore",
     defaultRewardStore
 );
-export const customRewardsStore = writable<CustomRewardResponse[]>([]);
-export const eventLogStore = writable<TwitchEventSource[]>([]);
-export const rewardQueue = writable<Reward[]>([]);
-export const currentReward = writable<Reward | null>(null);
+export const customRewardsStore: Writable<CustomRewardResponse[]> = writable([]);
+export const eventLogStore: Writable<TwitchEventSource[]> = writable([]);
+export const rewardQueue: Writable<Reward[]> = writable([]);
+export const currentReward: Writable<Reward | null> = writable(null);
 
 export interface RewardStoreState {
     baseAvatarId: string | null;
@@ -105,7 +106,7 @@ interface LocalState {
 
 type ClientState = LocalState & ConnectResponse;
 
-export const clientStateStore = writable<ClientState>({
+export const clientStateStore: Writable<ClientState> = writable({
     connected: false,
     id: null,
     has_twitch: false,
