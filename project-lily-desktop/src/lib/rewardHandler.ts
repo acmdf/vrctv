@@ -58,6 +58,9 @@ async function handleAvatarReward(reward: AvatarReward) {
         } else {
             let baseAvatarId = get(rewardStore).baseAvatarId ?? "";
             await commands.changeAvatar(baseAvatarId);
+            for (const [key, value] of Object.entries(get(rewardStore).baseParams ?? {})) {
+                await commands.setOsc(key, value);
+            }
             currentReward.set(null);
         }
     }, reward.timeoutSeconds * 1000);
