@@ -1,10 +1,10 @@
 [workspace]
 resolver = "3"
 members = [
-    "project-lily-common",
-    "project-lily-server",
-    "project-lily-desktop\\src-tauri",
-    "project-lily-overlay",
+    "vrctv-common",
+    "vrctv-server",
+    "vrctv-desktop\\src-tauri",
+    "vrctv-overlay",
 ]
 
 [workspace.dependencies]
