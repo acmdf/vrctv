@@ -1,6 +1,6 @@
 <div align="center">
 
-# <img src="https://raw.githubusercontent.com/ACMDF/VRCTV/master/vrctv-desktop/src/favicon.png" width="64" height="64"> </img> VRCTV
+# <img src="https://raw.githubusercontent.com/acmdf/vrctv/main/vrctv-desktop/src/favicon.png" width="64" height="64"> </img> VRCTV
 
 </div>
 
