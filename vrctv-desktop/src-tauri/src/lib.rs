@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use log::{error, LevelFilter};
-use project_lily_overlay::start_server;
+use vrctv_overlay::start_server;
 use serde::{Deserialize, Serialize};
 use specta::Type;
 #[cfg(debug_assertions)]
@@ -100,7 +100,7 @@ pub fn run() {
 
             let (tx, _) = broadcast::channel(16);
             let (watch_tx, watch_rx) = watch::channel(Vec::new());
-            let state = project_lily_overlay::AppState {
+            let state = vrctv_overlay::AppState {
                 lookup_table: watch_rx,
             };
 

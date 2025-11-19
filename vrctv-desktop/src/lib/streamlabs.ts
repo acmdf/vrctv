@@ -1,8 +1,8 @@
 import { get } from "svelte/store";
-import type { TwitchEventSource } from "../../../project-lily-common/bindings/TwitchEventSource";
+import type { TwitchEventSource } from "../../../vrctv-common/bindings/TwitchEventSource";
 import { rewardStore } from "./stores";
 import { addReward } from "./rewardHandler";
-import type { StreamLabsEvent } from "../../../project-lily-common/bindings/StreamLabsEvent";
+import type { StreamLabsEvent } from "../../../vrctv-common/bindings/StreamLabsEvent";
 
 interface DonationMessage {
     _id: string;

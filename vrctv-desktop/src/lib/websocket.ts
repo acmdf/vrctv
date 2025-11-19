@@ -1,5 +1,5 @@
-import type { ClientMessage } from "../../../project-lily-common/bindings/ClientMessage";
-import type { ServerMessage } from "../../../project-lily-common/bindings/ServerMessage";
+import type { ClientMessage } from "../../../vrctv-common/bindings/ClientMessage";
+import type { ServerMessage } from "../../../vrctv-common/bindings/ServerMessage";
 import { clientStateStore, customRewardsStore, eventLogStore, TaskState, taskStateStore } from "./stores";
 import toast from "svelte-french-toast";
 import { debug, error, info } from "@tauri-apps/plugin-log";
@@ -124,7 +124,7 @@ export async function sendNotif(title: string, message: string) {
         content: message,
         useBase64Icon: false,
         icon: "default",
-        sourceApp: "Project Lily"
+        sourceApp: "VRCTV"
     });
 }
 

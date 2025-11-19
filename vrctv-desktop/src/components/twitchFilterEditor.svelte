@@ -1,6 +1,6 @@
 <script lang="ts">
     import { customRewardsStore } from "$lib/stores";
-    import type { TwitchEventSource } from "../../../project-lily-common/bindings/TwitchEventSource";
+    import type { TwitchEventSource } from "../../../vrctv-common/bindings/TwitchEventSource";
 
     const {
         match,

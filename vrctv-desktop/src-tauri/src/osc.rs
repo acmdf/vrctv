@@ -80,7 +80,7 @@ pub async fn osc_message_broadcaster(app: &AppHandle) -> Result<()> {
     let root_node = OscRootNode::new().with_avatar();
 
     osc.register(
-        "project_lily_desktop",
+        "vrctv_desktop",
         root_node,
         move |packet| match packet {
             OscPacket::Message(msg) => {

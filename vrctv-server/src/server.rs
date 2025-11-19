@@ -3,7 +3,7 @@ use std::{env, net::SocketAddr, sync::Arc};
 use axum::extract::ws::{Message, WebSocket};
 use futures_util::{SinkExt, StreamExt};
 use log::{debug, error, info};
-use project_lily_common::{
+use vrctv_common::{
     ClientMessage, ConnectRequest, ConnectResponse, ErrorMessage, ServerMessage, StreamLabsEvent,
     StreamLabsEvents, TaskResponse,
 };
@@ -441,7 +441,7 @@ pub async fn handle_message(
                     context.state_token = Some(state_token.clone());
 
                     // Send the state token back to the client
-                    let response = ServerMessage::CodeResponse(project_lily_common::CodeResponse {
+                    let response = ServerMessage::CodeResponse(vrctv_common::CodeResponse {
                         state_token: state_token.clone(),
                     });
                     let response_text =

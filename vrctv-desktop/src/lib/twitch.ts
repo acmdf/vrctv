@@ -1,5 +1,5 @@
 import { get } from "svelte/store";
-import type { TwitchEventSource } from "../../../project-lily-common/bindings/TwitchEventSource";
+import type { TwitchEventSource } from "../../../vrctv-common/bindings/TwitchEventSource";
 import { rewardStore } from "./stores";
 import { addReward } from "./rewardHandler";
 

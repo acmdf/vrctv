@@ -1,9 +1,9 @@
 import { writable, type Writable } from "svelte/store";
 import type { OscValue, OverlayItem, Service, ServiceStatus } from "../bindings";
-import type { ConnectResponse } from "../../../project-lily-common/bindings/ConnectResponse";
+import type { ConnectResponse } from "../../../vrctv-common/bindings/ConnectResponse";
 import { persisted } from "svelte-persisted-store";
-import type { TwitchEventSource } from "../../../project-lily-common/bindings/TwitchEventSource";
-import type { CustomRewardResponse } from "../../../project-lily-common/bindings/CustomRewardResponse";
+import type { TwitchEventSource } from "../../../vrctv-common/bindings/TwitchEventSource";
+import type { CustomRewardResponse } from "../../../vrctv-common/bindings/CustomRewardResponse";
 import type { StreamLabsEventMatcher } from "./streamlabs";
 
 export const defaultRewardStore: RewardStoreState = {

@@ -167,7 +167,7 @@ fn app() -> Router {
     }
 
     let http_client = reqwest::Client::default_client_with_name(Some(HeaderValue::from_static(
-        "project-lily-server",
+        "vrctv-server",
     )))
     .expect("Could not create default client");
 

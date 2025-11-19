@@ -4,16 +4,16 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in library 'project_lily_common'",
+            "name": "Debug unit tests in library 'vrctv_common'",
             "cargo": {
                 "args": [
                     "test",
                     "--no-run",
                     "--lib",
-                    "--package=project-lily-common"
+                    "--package=vrctv-common"
                 ],
                 "filter": {
-                    "name": "project_lily_common",
+                    "name": "vrctv_common",
                     "kind": "lib"
                 }
             },
@@ -23,15 +23,15 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'project-lily-server'",
+            "name": "Debug executable 'vrctv-server'",
             "cargo": {
                 "args": [
                     "build",
-                    "--bin=project-lily-server",
-                    "--package=project-lily-server"
+                    "--bin=vrctv-server",
+                    "--package=vrctv-server"
                 ],
                 "filter": {
-                    "name": "project-lily-server",
+                    "name": "vrctv-server",
                     "kind": "bin"
                 }
             },
@@ -42,16 +42,16 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in executable 'project-lily-server'",
+            "name": "Debug unit tests in executable 'vrctv-server'",
             "cargo": {
                 "args": [
                     "test",
                     "--no-run",
-                    "--bin=project-lily-server",
-                    "--package=project-lily-server"
+                    "--bin=vrctv-server",
+                    "--package=vrctv-server"
                 ],
                 "filter": {
-                    "name": "project-lily-server",
+                    "name": "vrctv-server",
                     "kind": "bin"
                 }
             },
@@ -61,16 +61,16 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in library 'project_lily_desktop_lib'",
+            "name": "Debug unit tests in library 'vrctv_desktop_lib'",
             "cargo": {
                 "args": [
                     "test",
                     "--no-run",
                     "--lib",
-                    "--package=project-lily-desktop"
+                    "--package=vrctv-desktop"
                 ],
                 "filter": {
-                    "name": "project_lily_desktop_lib",
+                    "name": "vrctv_desktop_lib",
                     "kind": "lib"
                 }
             },
@@ -80,15 +80,15 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'project-lily-desktop'",
+            "name": "Debug executable 'vrctv-desktop'",
             "cargo": {
                 "args": [
                     "build",
-                    "--bin=project-lily-desktop",
-                    "--package=project-lily-desktop"
+                    "--bin=vrctv-desktop",
+                    "--package=vrctv-desktop"
                 ],
                 "filter": {
-                    "name": "project-lily-desktop",
+                    "name": "vrctv-desktop",
                     "kind": "bin"
                 }
             },
@@ -98,16 +98,16 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in executable 'project-lily-desktop'",
+            "name": "Debug unit tests in executable 'vrctv-desktop'",
             "cargo": {
                 "args": [
                     "test",
                     "--no-run",
-                    "--bin=project-lily-desktop",
-                    "--package=project-lily-desktop"
+                    "--bin=vrctv-desktop",
+                    "--package=vrctv-desktop"
                 ],
                 "filter": {
-                    "name": "project-lily-desktop",
+                    "name": "vrctv-desktop",
                     "kind": "bin"
                 }
             },

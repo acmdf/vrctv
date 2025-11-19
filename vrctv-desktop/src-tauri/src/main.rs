@@ -2,5 +2,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    project_lily_desktop_lib::run()
+    vrctv_desktop_lib::run()
 }

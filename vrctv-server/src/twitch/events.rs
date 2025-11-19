@@ -2,7 +2,7 @@ use std::env;
 
 use axum::extract::ws::Message;
 use log::{error, info};
-use project_lily_common::{
+use vrctv_common::{
     ChangeAvatar, CustomRewardResponse, Notify, ServerMessage, TwitchEvent, TwitchEventSource,
     TwitchTriggerRequest,
 };

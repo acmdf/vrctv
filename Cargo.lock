@@ -3582,86 +3582,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "project-lily-common"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
- "ts-rs",
-]
-
-[[package]]
-name = "project-lily-desktop"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "futures-util",
- "glob",
- "log",
- "platform-dirs",
- "project-lily-overlay",
- "serde",
- "serde_json",
- "specta",
- "specta-typescript",
- "tauri",
- "tauri-build",
- "tauri-plugin-dialog",
- "tauri-plugin-fs",
- "tauri-plugin-log",
- "tauri-plugin-notification",
- "tauri-plugin-opener",
- "tauri-plugin-websocket",
- "tauri-specta",
- "tokio",
- "tokio-tungstenite 0.28.0",
- "vrchat_osc",
-]
-
-[[package]]
-name = "project-lily-overlay"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "axum",
- "axum-extra",
- "log",
- "serde",
- "serde_json",
- "specta",
- "tokio",
- "tokio-tungstenite 0.28.0",
- "tower-http",
-]
-
-[[package]]
-name = "project-lily-server"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "axum",
- "axum-extra",
- "chrono",
- "futures-util",
- "listenfd",
- "log",
- "project-lily-common",
- "r2d2",
- "r2d2_sqlite",
- "reqwest",
- "rusqlite",
- "rust_socketio",
- "serde",
- "serde_json",
- "tokio",
- "tokio-tungstenite 0.28.0",
- "tower-http",
- "tracing-subscriber",
- "twitch_api",
- "uuid",
-]
-
-[[package]]
 name = "ptr_meta"
 version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6227,6 +6147,86 @@ dependencies = [
  "thiserror 2.0.17",
  "tokio",
  "wildmatch",
+]
+
+[[package]]
+name = "vrctv-common"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "ts-rs",
+]
+
+[[package]]
+name = "vrctv-desktop"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "futures-util",
+ "glob",
+ "log",
+ "platform-dirs",
+ "serde",
+ "serde_json",
+ "specta",
+ "specta-typescript",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-dialog",
+ "tauri-plugin-fs",
+ "tauri-plugin-log",
+ "tauri-plugin-notification",
+ "tauri-plugin-opener",
+ "tauri-plugin-websocket",
+ "tauri-specta",
+ "tokio",
+ "tokio-tungstenite 0.28.0",
+ "vrchat_osc",
+ "vrctv-overlay",
+]
+
+[[package]]
+name = "vrctv-overlay"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "axum",
+ "axum-extra",
+ "log",
+ "serde",
+ "serde_json",
+ "specta",
+ "tokio",
+ "tokio-tungstenite 0.28.0",
+ "tower-http",
+]
+
+[[package]]
+name = "vrctv-server"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "axum",
+ "axum-extra",
+ "chrono",
+ "futures-util",
+ "listenfd",
+ "log",
+ "r2d2",
+ "r2d2_sqlite",
+ "reqwest",
+ "rusqlite",
+ "rust_socketio",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tokio-tungstenite 0.28.0",
+ "tower-http",
+ "tracing-subscriber",
+ "twitch_api",
+ "uuid",
+ "vrctv-common",
 ]
 
 [[package]]

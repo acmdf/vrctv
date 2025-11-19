@@ -1,0 +1,17 @@
+[Unit]
+Description=VRCTV Server
+After=network.target
+Wants=network.target
+StartLimitIntervalSec=0
+StartLimitBurst=3
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=5
+EnvironmentFile=/root/vrctv/server.env
+WorkingDirectory=/var/www/vrctv
+ExecStart=/root/vrctv/target/release/vrctv-server
+
+[Install]
+WantedBy=multi-user.target

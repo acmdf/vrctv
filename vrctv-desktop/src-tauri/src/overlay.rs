@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use project_lily_overlay::ServerCommand;
+use vrctv_overlay::ServerCommand;
 use tauri::Manager;
 use tokio::sync::{broadcast, watch};
 
@@ -21,10 +21,10 @@ pub async fn send_overlay_command(
 #[specta::specta]
 pub async fn update_overlays(
     app: tauri::AppHandle,
-    message: Vec<project_lily_overlay::OverlayItem>,
+    message: Vec<vrctv_overlay::OverlayItem>,
 ) -> Result<(), String> {
     let tx = app
-        .state::<watch::Sender<Vec<project_lily_overlay::OverlayItem>>>()
+        .state::<watch::Sender<Vec<vrctv_overlay::OverlayItem>>>()
         .clone();
 
     tx.send(message).map_err(|e| e.to_string())?;

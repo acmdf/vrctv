@@ -93,7 +93,7 @@ pub async fn xsoverlay_notifier(
     while let Some(msg) = rx.recv().await {
         info!("Sending notification from {}", msg.source_app);
         let data = serde_json::to_string(&ApiObject {
-            sender: "ProjectLily".to_string(),
+            sender: "VRCTV".to_string(),
             target: "xsoverlay".to_string(),
             command: "SendNotification".to_string(),
             json_data: serde_json::to_string(&msg).unwrap(),
