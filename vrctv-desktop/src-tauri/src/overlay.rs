@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use vrctv_overlay::ServerCommand;
 use tauri::Manager;
 use tokio::sync::{broadcast, watch};
