@@ -6,6 +6,23 @@
 
 VRCTV is a stream helper app, that provides avatar changing and overlay reward support
 
+# Setting up environment
+
+The server component needs some env variables set for it to function correctly, and those can either be set using a .env file in the root directory, or simply setting them in the environment. Following is an example .env file with some good defaults (*Important Note*: changing the scope variables could cause issues, not all of them are used currently but they're set aside for future use):
+```
+STREAMLABS_REDIRECT=http://localhost:3000/streamlabs/callback
+STREAMLABS_SCOPES="donations.read socket.token mediashare.control"
+STREAMLABS_VERSION=1
+STREAMLABS_CLIENT=my-streamlabs-client-key
+STREAMLABS_SECRET=STREAMLABSSECRET
+
+TWITCH_REDIRECT=http://localhost:3000/twitch/callback
+TWITCH_SCOPES="user_read bits:read channel:bot channel:read:polls channel:manage:polls channel:read:redemptions channel:manage:redemptions user:read:chat user:read:whispers"
+TWITCH_VERSION=1
+TWITCH_CLIENT=mytwitchclient
+TWITCH_SECRET=mytwitchsecret
+```
+
 # Building
 
 ## Desktop App
