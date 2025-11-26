@@ -46,4 +46,4 @@ To install the dependencies, run `pnpm i`
 
 # Contributing
 
-If you're interested in contributing your feature or patch to project Lily, simply open a pull request. However, if it's more complex than simple changes, contact me on discord (same username) so we can talk about how it's implemented and if it's within scope.
+If you're interested in contributing your feature or patch to VRCTV, simply open a pull request. However, if it's more complex than simple changes, contact me on discord (same username) so we can talk about how it's implemented and if it's within scope.
