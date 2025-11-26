@@ -1,6 +1,6 @@
 <script>
   import { clientStateStore } from "$lib/stores";
-  import { BACKEND_URL } from "../consts";
+  import { PUBLIC_BACKEND_URL } from "$env/static/public";
 </script>
 
 <div class="flex w-full space-x-4 mb-4">
@@ -12,7 +12,7 @@
     {:else}
       <a
         class="p-8 rounded bg-red-800 text-center flex-1"
-        href={`${BACKEND_URL}twitch/auth/${$clientStateStore.id}`}
+        href={`${PUBLIC_BACKEND_URL}twitch/auth/${$clientStateStore.id}`}
         target="_blank">Connect to Twitch</a
       >
     {/if}
@@ -23,7 +23,7 @@
     {:else}
       <a
         class="p-8 rounded bg-red-800 text-center flex-1"
-        href={`${BACKEND_URL}streamlabs/auth/${$clientStateStore.id}`}
+        href={`${PUBLIC_BACKEND_URL}streamlabs/auth/${$clientStateStore.id}`}
         target="_blank">Connect to Streamlabs</a
       >
     {/if}

@@ -2,7 +2,7 @@
     import { onMount } from "svelte";
     import { clientStateStore } from "../lib/stores";
     import { handleMessage, onConnect } from "$lib/websocket";
-    import { WEBSOCKET_URL } from "../consts";
+    import { PUBLIC_WEBSOCKET_URL } from "$env/static/public";
     import { debug, info, warn } from "@tauri-apps/plugin-log";
     import WebSocket from "@tauri-apps/plugin-websocket";
 
@@ -15,7 +15,7 @@
 
         let ws: WebSocket;
         try {
-            ws = await WebSocket.connect(WEBSOCKET_URL);
+            ws = await WebSocket.connect(PUBLIC_WEBSOCKET_URL);
         } catch (e) {
             clientStateStore.update((s) => ({ ...s, connected: false }));
             info(`WebSocket connection failed: ${e}`);

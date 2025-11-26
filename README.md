@@ -21,6 +21,9 @@ TWITCH_SCOPES="user_read bits:read channel:bot channel:read:polls channel:manage
 TWITCH_VERSION=1
 TWITCH_CLIENT=mytwitchclient
 TWITCH_SECRET=mytwitchsecret
+
+PUBLIC_WEBSOCKET_URL=wss://example.com/ws
+PUBLIC_BACKEND_URL=https://example.com/
 ```
 
 # Building
