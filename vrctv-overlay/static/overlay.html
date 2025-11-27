@@ -7,12 +7,13 @@
     <title>Overlay {{OVERLAY_ID}}</title>
 </head>
 
-<body style="margin: 0; overflow: hidden;">
-    <img id="overlay-image" src="" style="width: 100%; height: 100%; object-fit: contain;" />
+<body style="margin: 0; overflow: hidden; height: 100vh;">
+    <img id="overlay-image" src="" style="width: 100%; height: 100%; object-fit: contain; display: none;" />
+    <iframe id="overlay-iframe" src="" style="width: 100%; height: 100%; object-fit: contain; display: none;"></iframe>
     <script>
         let overlayId = Number("{{OVERLAY_ID}}");
 
-        const ws = new WebSocket(`ws://${window.location.hostname}:2678/ws`);
+        const ws = new WebSocket(`ws://${window.location.hostname}:10627/ws`);
 
         ws.onopen = () => {
             console.log("WebSocket connection established");
@@ -22,10 +23,14 @@
         ws.onmessage = (event) => {
             const message = JSON.parse(event.data);
             const overlayImage = document.getElementById("overlay-image");
+            const overlayIframe = document.getElementById("overlay-iframe");
+
             if (message.type === "UpdateData" && message.data.id === overlayId) {
                 const overlayData = message.data;
-                overlayImage.src = overlayData.url;
-                overlayImage.style.display = overlayData.visible ? "block" : "none";
+                overlayImage.src = !overlayData.isIframe ? overlayData.url : "";
+                overlayIframe.src = overlayData.isIframe ? overlayData.url : "";
+                overlayImage.style.display = (overlayData.visible && !overlayData.isIframe) ? "block" : "none";
+                overlayIframe.style.display = (overlayData.visible && overlayData.isIframe) ? "block" : "none";
             }
         };
     </script>

@@ -36,7 +36,7 @@
             <button
                 class="ml-2 px-2 py-1 bg-gray-700 rounded hover:bg-gray-600 cursor-pointer"
                 onclick={() => {
-                    const link = `http://localhost:2678/overlay/${overlay.id}`;
+                    const link = `http://localhost:10627/overlay/${overlay.id}`;
                     navigator.clipboard.writeText(link);
                 }}>Copy URL</button
             >
@@ -95,6 +95,20 @@
                     )}
             />
         </div>
+        <!-- Is Iframe -->
+        <div class="mb-2">
+            Is Iframe:
+            <input
+                type="checkbox"
+                checked={overlay.isIframe}
+                onchange={(e) =>
+                    updateOverlay(
+                        overlay.id,
+                        "isIframe",
+                        e.currentTarget.checked,
+                    )}
+            />
+        </div>
         <div class="flex space-x-2">
             <button
                 class="px-4 py-2 bg-green-600 rounded hover:bg-green-700 cursor-pointer"
@@ -127,6 +141,7 @@
             name: `Overlay ${newId}`,
             url: "http://example.com",
             visible: false,
+            isIframe: false,
         };
 
         $overlays = [...$overlays, newOverlay];

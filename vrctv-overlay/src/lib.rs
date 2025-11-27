@@ -20,21 +20,26 @@ use tokio::{
 use tower_http::{timeout::TimeoutLayer, trace::TraceLayer};
 
 #[derive(Serialize, Deserialize, Clone, Type)]
+#[serde(rename_all = "camelCase")]
 pub struct OverlayItem {
     pub id: i32,
     pub name: String,
     pub url: String,
+    pub is_iframe: bool,
     pub visible: bool,
 }
 
 // Implement Debug manually to avoid printing long URLs in logs
 impl std::fmt::Debug for OverlayItem {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let at = if self.url.len() > 20 { 20 } else { self.url.len() };
+
         f.debug_struct("OverlayItem")
             .field("id", &self.id)
             .field("name", &self.name)
             .field("visible", &self.visible)
-            .field("url", &&self.url[..20]) // Print only the first 20 characters of the URL
+            .field("url", &&self.url[..at]) // Print only the first 20 characters of the URL
+            .field("isIframe", &self.is_iframe)
             .finish()
     }
 }
@@ -66,7 +71,7 @@ pub async fn start_server(
     // build our application with a route
     let app = app(tx, state);
 
-    let listener = TcpListener::bind("0.0.0.0:2678").await?;
+    let listener = TcpListener::bind("0.0.0.0:10627").await?;
 
     // run it
     info!("listening on {}", listener.local_addr().unwrap());
