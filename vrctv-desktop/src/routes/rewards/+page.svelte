@@ -129,14 +129,16 @@
           }}
         />
       </div>
-      <div class="mb-2">
-        Timeout (seconds):
-        <input
-          type="number"
-          bind:value={reward.timeoutSeconds}
-          class="ml-2 p-1 bg-gray-700 text-white rounded w-32"
-        />
-      </div>
+      {#if reward.type === "avatar" || reward.type === "overlay"}
+        <div class="mb-2">
+          Timeout (seconds):
+          <input
+            type="number"
+            bind:value={reward.timeoutSeconds}
+            class="ml-2 p-1 bg-gray-700 text-white rounded w-32"
+          />
+        </div>
+      {/if}
 
       <div class="mb-2">
         Type:
@@ -147,15 +149,21 @@
             if (reward.type === "avatar") {
               reward.setsAvatar = null;
               reward.setParams = {};
+              reward.timeoutSeconds = 300;
             } else if (reward.type === "overlay") {
               reward.overlay = -1;
               reward.show = true;
+              reward.timeoutSeconds = 300;
+            } else if (reward.type === "overlayCancel") {
+              reward.overlay = -1;
             }
             $rewardStore = { ...$rewardStore };
           }}
         >
           <option value="avatar">Avatar</option>
           <option value="overlay">Overlay</option>
+          <option value="avatarCancel">Avatar Cancel</option>
+          <option value="overlayCancel">Overlay Cancel</option>
         </select>
       </div>
 
@@ -228,6 +236,21 @@
         <div class="mb-2">
           Show Overlay:
           <input type="checkbox" bind:checked={reward.show} class="ml-2" />
+        </div>
+      {:else if reward.type === "overlayCancel"}
+        <div class="mb-2">
+          Cancel Overlay:
+          <select
+            bind:value={reward.overlay}
+            class="ml-2 p-1 bg-gray-700 text-white rounded"
+          >
+            <option value={-1}>None</option>
+            {#each $overlays as overlay}
+              <option value={overlay.id}
+                >{overlay.name} (ID: {overlay.id})</option
+              >
+            {/each}
+          </select>
         </div>
       {/if}
       <h3 class="text-xl font-bold mt-4 mb-2">

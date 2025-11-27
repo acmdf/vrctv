@@ -71,7 +71,9 @@ export const rewardStore: Writable<RewardStoreState> = persisted(
 export const customRewardsStore: Writable<CustomRewardResponse[]> = writable([]);
 export const eventLogStore: Writable<TwitchEventSource[]> = writable([]);
 export const avatarRewardQueue: Writable<AvatarReward[]> = writable([]);
+export const currentAvatarRewardTimeout: Writable<number | null> = writable(null);
 export const overlayRewardQueue: Writable<{ [key: number]: OverlayReward[] }> = writable([]);
+export const currentOverlayRewardTimeout: Writable<{ [key: number]: number | null }> = writable({});
 export const currentReward: Writable<Reward | null> = writable(null);
 export const overlays: Writable<OverlayItem[]> = persisted(
     "overlaysStore",
@@ -79,7 +81,7 @@ export const overlays: Writable<OverlayItem[]> = persisted(
 );
 export const overlayVisibleStore: Writable<Record<number, boolean>> = writable({});
 
-export type Reward = (AvatarReward | OverlayReward);
+export type Reward = AvatarReward | AvatarCancelReward | OverlayReward | OverlayCancelReward;
 
 export interface RewardStoreState {
     baseAvatarId: string | null;
@@ -96,6 +98,12 @@ export interface AvatarReward {
     type: "avatar";
 }
 
+export interface AvatarCancelReward {
+    title: string;
+    on: Trigger;
+    type: "avatarCancel";
+}
+
 export interface OverlayReward {
     overlay: number;
     show: boolean;
@@ -103,6 +111,13 @@ export interface OverlayReward {
     timeoutSeconds: number;
     on: Trigger;
     type: "overlay";
+}
+
+export interface OverlayCancelReward {
+    overlay: number;
+    title: string;
+    on: Trigger;
+    type: "overlayCancel";
 }
 
 export type Trigger = { type: "twitch" } & { matches: Partial<TwitchEventSource>[] } | { type: "streamlabs" } & { matches: StreamLabsEventMatcher[] };

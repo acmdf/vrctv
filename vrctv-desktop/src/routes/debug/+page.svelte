@@ -12,6 +12,8 @@
         avatarRewardQueue,
         currentReward,
         defaultRewardStore,
+        currentAvatarRewardTimeout,
+        currentOverlayRewardTimeout,
     } from "../../lib/stores";
     import type { PageProps } from "./$types";
     import { warn } from "@tauri-apps/plugin-log";
@@ -173,6 +175,27 @@
         <div class="flex p-2 items-center border-b border-gray-700">
             <p class="text-md bg-gray-800 rounded p-2 mr-2">{index + 1}</p>
             {formatValue(reward)}
+        </div>
+    {/each}
+</div>
+<h2 class="text-2xl font-bold mb-2">Current Avatar Timeout</h2>
+<div class="mb-4">
+    {#if $currentAvatarRewardTimeout}
+        <p class="text-md bg-gray-800 rounded p-2 mr-2">Timeout ID: {$currentAvatarRewardTimeout}</p>
+    {:else}
+        <p class="text-gray-400">No current timeout set.</p>
+    {/if}
+</div>
+<h2 class="text-2xl font-bold mb-2">Current Overlay Timeouts</h2>
+<div class="mb-4">
+    {#each Object.entries($currentOverlayRewardTimeout) as [overlay, timeout]}
+        <div class="flex p-2 items-center">
+            <p class="text-md bg-gray-800 rounded p-2 mr-2">Overlay ID: {overlay}</p>
+            {#if timeout}
+                <p class="text-md bg-gray-800 rounded p-2 mr-2">Timeout ID: {timeout}</p>
+            {:else}
+                <p class="text-gray-400">No current timeout set.</p>
+            {/if}
         </div>
     {/each}
 </div>
