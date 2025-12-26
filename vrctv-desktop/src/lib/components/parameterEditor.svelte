@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { commands } from "../bindings";
+    import { commands } from "../../bindings";
 
     let {
         avatarId,

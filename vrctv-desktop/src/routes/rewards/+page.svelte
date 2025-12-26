@@ -8,11 +8,11 @@
   import { Minus, Plus, RefreshCcw } from "@lucide/svelte";
   import type { PageProps } from "../$types";
   import type { Avatar, Result } from "../../bindings";
-  import TwitchFilterEditor from "../../components/twitchFilterEditor.svelte";
+  import TwitchFilterEditor from "$lib/components/twitchFilterEditor.svelte";
   import { serverConnection } from "$lib/websocket";
   import { onMount } from "svelte";
-  import StreamlabsFilterEditor from "../../components/streamlabsFilterEditor.svelte";
-  import ParameterEditor from "../../components/parameterEditor.svelte";
+  import StreamlabsFilterEditor from "$lib/components/streamlabsFilterEditor.svelte";
+  import ParameterEditor from "$lib/components/parameterEditor.svelte";
 
   let { data: rawData }: PageProps = $props();
   const data = rawData as Result<Avatar[], string>;

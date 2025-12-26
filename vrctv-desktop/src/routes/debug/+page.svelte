@@ -14,7 +14,7 @@
         defaultRewardStore,
         currentAvatarRewardTimeout,
         currentOverlayRewardTimeout,
-    } from "../../lib/stores";
+    } from "$lib/stores";
     import type { PageProps } from "./$types";
     import { warn } from "@tauri-apps/plugin-log";
     import { sendNotif, serverConnection } from "$lib/websocket";

@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { clientStateStore } from "../lib/stores";
+    import { clientStateStore } from "../stores";
     import { handleMessage, onConnect } from "$lib/websocket";
     import { PUBLIC_WEBSOCKET_URL } from "$env/static/public";
     import { debug, info, warn } from "@tauri-apps/plugin-log";

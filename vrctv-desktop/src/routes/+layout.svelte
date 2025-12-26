@@ -6,9 +6,9 @@
     import { commands, events } from "../bindings";
     import { onMount } from "svelte";
     import Menu from "./menu.svelte";
-    import Logo from "../components/logo.svelte";
-    import StoreManager from "../components/storeManager.svelte";
-    import ConnectionManager from "../components/connectionManager.svelte";
+    import Logo from "$lib/components/logo.svelte";
+    import StoreManager from "$lib/components/storeManager.svelte";
+    import ConnectionManager from "$lib/components/connectionManager.svelte";
     import { attachConsole, info } from "@tauri-apps/plugin-log";
     import { overlays, overlayVisibleStore } from "$lib/stores";
     import { currentOverlayState } from "$lib/overlays";

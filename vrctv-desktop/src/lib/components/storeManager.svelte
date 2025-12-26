@@ -1,8 +1,8 @@
 <script lang="ts">
-    import { events } from "../bindings";
+    import { events } from "../../bindings";
     import { onMount } from "svelte";
-    import { oscStateStore, serviceStateStore } from "../lib/stores";
-    import { info, debug } from "@tauri-apps/plugin-log";
+    import { oscStateStore, serviceStateStore } from "../stores";
+    import { info } from "@tauri-apps/plugin-log";
 
     const batchInterval = 100; // milliseconds
     let oscUpdateQueue: Record<string, any> = {};
