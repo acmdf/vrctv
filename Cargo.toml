@@ -3,7 +3,7 @@ resolver = "3"
 members = [
     "vrctv-common",
     "vrctv-server",
-    "vrctv-desktop\\src-tauri",
+    "vrctv-desktop/src-tauri",
     "vrctv-overlay",
 ]
 
