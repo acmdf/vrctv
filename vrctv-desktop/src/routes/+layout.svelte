@@ -12,6 +12,9 @@
     import { attachConsole, info } from "@tauri-apps/plugin-log";
     import { overlays, overlayVisibleStore } from "$lib/stores";
     import { currentOverlayState } from "$lib/overlays";
+    import { ModeWatcher } from "mode-watcher";
+    import ThemeSwitcher from "$lib/components/themeSwitcher.svelte";
+    import * as Sidebar from "$lib/components/ui/sidebar/index.js";
 
     onMount(async () => {
         await attachConsole();
@@ -49,18 +52,28 @@
     });
 </script>
 
-<div class="flex items-stretch">
+<Sidebar.Provider>
     <Menu />
-    <div class="h-screen overflow-auto flex flex-col flex-grow">
-        <header class="bg-gray-800 p-4 flex space-x-4">
-            <Logo cogSpinning={false} width="40" height="40" />
+    <main class="w-full">
+        <!-- Centered Logo -->
+        <header class="bg-sidebar text-sidebar-foreground p-4 relative">
+            <Sidebar.Trigger class="absolute left-4 top-5" />
+            <div class="flex items-center justify-center">
+                <Logo cogSpinning={false} width="40" height="40" />
+            </div>
         </header>
-        <main class="flex-grow p-4">
+        <div class="flex-grow p-4">
             {@render children()}
-        </main>
-    </div>
+        </div>
+    </main>
+</Sidebar.Provider>
+
+<div class="fixed bottom-4 right-4 z-50">
+    <ThemeSwitcher />
 </div>
+
 <!-- Services -->
 <Toaster position="bottom-center" />
 <StoreManager />
 <ConnectionManager />
+<ModeWatcher />

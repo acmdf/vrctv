@@ -1,7 +1,6 @@
 <script lang="ts">
-    import { ArrowLeft, House, Bug, Menu, ThumbsUp, Twitch, BookOpen } from "@lucide/svelte";
-
-    let menuOpen = $state(false);
+    import { House, Bug, ThumbsUp, Twitch, BookOpen } from "@lucide/svelte";
+    import * as Sidebar from "$lib/components/ui/sidebar/index.js";
 
     const menuItems = [
         {
@@ -30,41 +29,30 @@
             icon: Bug,
         },
     ];
-
-    function width(node: HTMLElement, params: { duration: number }) {
-        return {
-            duration: params.duration,
-            css: (t: number) => `width: ${t * 50}px; overflow: hidden;`,
-        };
-    }
 </script>
 
-<aside class="min-h-full bg-gray-900 shadow-2xl z-50">
-    <button
-        type="button"
-        class="m-4 hover:text-gray-300"
-        onclick={() => (menuOpen = !menuOpen)}
-    >
-        {#if menuOpen}
-            <ArrowLeft />
-        {:else}
-            <Menu />
-        {/if}
-    </button>
-    <nav class="flex flex-col space-y-2">
-        {#each menuItems as item}
-            {@const Icon = item.icon}
-            <a
-                href={item.href}
-                class="hover:text-gray-300 flex items-center border-b border-gray-700 px-4 py-2"
-            >
-                <Icon />
-                {#if menuOpen}
-                    <span class="ml-2" transition:width={{ duration: 300 }}
-                        >{item.name}</span
-                    >
-                {/if}
-            </a>
-        {/each}
-    </nav>
-</aside>
+<Sidebar.Root collapsible="icon">
+    <Sidebar.Content>
+        <Sidebar.Group>
+            <Sidebar.GroupContent>
+                <Sidebar.Menu>
+                    {#each menuItems as item (item.name)}
+                        <Sidebar.MenuItem>
+                            <Sidebar.MenuButton>
+                                {#snippet child({ props })}
+                                    <a href={item.href} {...props}>
+                                        <item.icon />
+                                        <span
+                                            class="group-data-[collapsible=icon]:hidden"
+                                            >{item.name}</span
+                                        >
+                                    </a>
+                                {/snippet}
+                            </Sidebar.MenuButton>
+                        </Sidebar.MenuItem>
+                    {/each}
+                </Sidebar.Menu>
+            </Sidebar.GroupContent>
+        </Sidebar.Group>
+    </Sidebar.Content>
+</Sidebar.Root>

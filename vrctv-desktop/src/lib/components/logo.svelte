@@ -34,7 +34,7 @@
     viewBox="0 0 88.854 94.007"
     {width}
     {height}
-    class="mx-auto overflow-visible"
+    class="overflow-visible"
 >
     {#if cogVisible}
         <path
