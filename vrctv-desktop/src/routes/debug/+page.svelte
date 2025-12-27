@@ -181,7 +181,9 @@
 <h2 class="text-2xl font-bold mb-2">Current Avatar Timeout</h2>
 <div class="mb-4">
     {#if $currentAvatarRewardTimeout}
-        <p class="text-md bg-gray-800 rounded p-2 mr-2">Timeout ID: {$currentAvatarRewardTimeout}</p>
+        <p class="text-md bg-gray-800 rounded p-2 mr-2">
+            Timeout ID: {$currentAvatarRewardTimeout}
+        </p>
     {:else}
         <p class="text-gray-400">No current timeout set.</p>
     {/if}
@@ -190,9 +192,13 @@
 <div class="mb-4">
     {#each Object.entries($currentOverlayRewardTimeout) as [overlay, timeout]}
         <div class="flex p-2 items-center">
-            <p class="text-md bg-gray-800 rounded p-2 mr-2">Overlay ID: {overlay}</p>
+            <p class="text-md bg-gray-800 rounded p-2 mr-2">
+                Overlay ID: {overlay}
+            </p>
             {#if timeout}
-                <p class="text-md bg-gray-800 rounded p-2 mr-2">Timeout ID: {timeout}</p>
+                <p class="text-md bg-gray-800 rounded p-2 mr-2">
+                    Timeout ID: {timeout}
+                </p>
             {:else}
                 <p class="text-gray-400">No current timeout set.</p>
             {/if}

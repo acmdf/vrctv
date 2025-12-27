@@ -3,6 +3,12 @@
   import { serverConnection } from "$lib/websocket";
   import { info } from "@tauri-apps/plugin-log";
   import { onMount } from "svelte";
+  import * as Card from "$lib/components/ui/card/index.js";
+  import * as InputGroup from "$lib/components/ui/input-group/index.js";
+  import Button from "$lib/components/ui/button/button.svelte";
+  import Input from "$lib/components/ui/input/input.svelte";
+  import Label from "$lib/components/ui/label/label.svelte";
+  import { Check, X } from "@lucide/svelte";
 
   let lastCustomRewardsState = $state($customRewardsStore);
   let currentCustomRewards = $state($customRewardsStore);
@@ -49,43 +55,84 @@
 {#if Object.keys(currentCustomRewards).length === 0}
   <div class="p-4 bg-gray-800 rounded">No custom rewards found.</div>
 {:else}
-  <div class="space-y-4">
+  <div class="grid gap-6 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 mb-4">
     {#each Object.entries(currentCustomRewards) as [rewardId, reward]}
-      <div class="p-4 bg-gray-800 rounded">
-        <input
-          type="text"
-          bind:value={reward.title}
-          class="text-xl font-semibold mb-2 bg-gray-700 text-white p-1 rounded w-full"
-        />
-        <textarea
-          bind:value={reward.prompt}
-          class="mb-2 bg-gray-700 text-white p-1 rounded w-full"
-        ></textarea>
-        <p class="mb-2">
-          Cost: <input
-            type="number"
-            bind:value={reward.cost}
-            class="bg-gray-700 text-white p-1 rounded"
-          /> points
-        </p>
-        <p class="mb-2">Status: {reward.is_enabled ? "Enabled" : "Disabled"}</p>
-        <p class="mb-2">
-          Global Cooldown: <input
-            type="number"
-            bind:value={reward.global_cooldown_seconds}
-            class="bg-gray-700 text-white p-1 rounded"
-          /> seconds
-        </p>
-        <button
-          class="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          onclick={() => (reward.is_enabled = !reward.is_enabled)}
-        >
-          {reward.is_enabled ? "Disable" : "Enable"}
-        </button>
-      </div>
+      <Card.Root>
+        <Card.Header>
+          <Card.Title>
+            <div class="grid items-center gap-1.5">
+              <Label for="title-{rewardId}">Title (visible to viewers)</Label>
+              <div class="flex items-center w-full justify-between">
+                <Input
+                  type="text"
+                  bind:value={reward.title}
+                  class="flex-1"
+                  id="title-{rewardId}"
+                />
+                {#if reward.is_enabled}
+                  <Check class="ml-2 inline text-green-500" size="32" />
+                {:else}
+                  <X class="ml-2 inline text-red-500" size="32" />
+                {/if}
+              </div>
+            </div>
+          </Card.Title>
+        </Card.Header>
+        <hr />
+        <Card.Content>
+          <div class="flex flex-col space-y-4 mb-4">
+            <div class="grid w-full items-center gap-1.5">
+              <Label for="prompt-{rewardId}">Prompt (visible to viewers)</Label>
+              <Input
+                type="text"
+                bind:value={reward.prompt}
+                id="prompt-{rewardId}"
+              />
+            </div>
+            <div class="grid w-full items-center gap-1.5">
+              <Label for="cost-{rewardId}">Cost</Label>
+              <InputGroup.Root>
+                <InputGroup.Input
+                  type="number"
+                  bind:value={reward.cost}
+                  id="cost-{rewardId}"
+                />
+                <InputGroup.Addon align="inline-end">
+                  <InputGroup.Text>points</InputGroup.Text>
+                </InputGroup.Addon>
+              </InputGroup.Root>
+            </div>
+            <div class="grid w-full items-center gap-1.5">
+              <Label for="global-cooldown-{rewardId}">Global Cooldown</Label>
+              <InputGroup.Root>
+                <InputGroup.Input
+                  type="number"
+                  bind:value={reward.global_cooldown_seconds}
+                  id="global-cooldown-{rewardId}"
+                />
+                <InputGroup.Addon align="inline-end">
+                  <InputGroup.Text>seconds</InputGroup.Text>
+                </InputGroup.Addon>
+              </InputGroup.Root>
+            </div>
+          </div>
+        </Card.Content>
+
+        <Card.Footer>
+          <Button
+            class="w-full"
+            variant={reward.is_enabled ? "destructive" : "default"}
+            onclick={() => (reward.is_enabled = !reward.is_enabled)}
+          >
+            {reward.is_enabled ? "Disable" : "Enable"}
+          </Button>
+        </Card.Footer>
+      </Card.Root>
     {/each}
-    <button
-      class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+  </div>
+  <div class="flex items-center justify-between space-x-4 w-full">
+    <Button
+      class="flex-1"
       onclick={() => {
         currentCustomRewards = [
           ...currentCustomRewards,
@@ -103,10 +150,10 @@
       }}
     >
       Add Reward
-    </button>
+    </Button>
     {#if touched}
-      <button
-        class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+      <Button
+        class="flex-1"
         onclick={() => {
           info(
             `Saving custom rewards: ${JSON.stringify(currentCustomRewards)}`,
@@ -129,9 +176,10 @@
           });
           touched = false;
         }}
+        variant="secondary"
       >
         Save Changes
-      </button>
+      </Button>
     {/if}
   </div>
 {/if}
