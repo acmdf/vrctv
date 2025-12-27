@@ -47,7 +47,7 @@
         return String(value);
     }
 
-    onMount(() => {
+    $effect(() => {
         $serverConnection?.send({
             type: "twitchTrigger",
             GetCustomRewards: {

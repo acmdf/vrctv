@@ -23,7 +23,7 @@
       : [],
   );
 
-  onMount(() => {
+  $effect(() => {
     $serverConnection?.send({
       type: "twitchTrigger",
       GetCustomRewards: {
