@@ -4,12 +4,12 @@ import { rewardStore } from "./stores";
 import { addReward } from "./rewardHandler";
 
 export async function handleTwitchEvent(event: TwitchEventSource) {
-    let rewards = get(rewardStore).rewards.filter((r) => r.on.type === "twitch");
+    const rewards = get(rewardStore).rewards.filter((r) => r.on.type === "twitch");
 
-    for (let reward of rewards) {
-        let matches = reward.on.matches as Partial<TwitchEventSource>[];
+    for (const reward of rewards) {
+        const matches = reward.on.matches as Partial<TwitchEventSource>[];
 
-        for (let m of matches) {
+        for (const m of matches) {
             if (m.type !== event.type) {
                 continue;
             }

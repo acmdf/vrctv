@@ -1,73 +1,118 @@
 <script lang="ts">
-    import type { StreamLabsEventMatcher } from "$lib/streamlabs";
+  import type { StreamLabsEventMatcher } from "$lib/streamlabs";
+  import * as Card from "$lib/components/ui/card";
+  import * as Select from "$lib/components/ui/select";
+  import Input from "./ui/input/input.svelte";
+  import Button from "./ui/button/button.svelte";
 
-    const {
-        match,
-        onchange,
-    }: {
-        match: StreamLabsEventMatcher;
-        onchange: (newMatch: StreamLabsEventMatcher) => void;
-    } = $props();
+  const {
+    placeholder = false,
+    match,
+    onchange,
+  }: {
+    placeholder?: boolean;
+    match?: StreamLabsEventMatcher;
+    onchange: (newMatch?: StreamLabsEventMatcher) => void;
+  } = $props();
 
-    const streamlabsFilterDemoObjects: StreamLabsEventMatcher[] = [
-        {
-            type: "donation",
-            amount: 500,
-            message: "MaidMode",
-        },
-    ];
+  const streamlabsFilterDemoObjects: StreamLabsEventMatcher[] = [
+    {
+      type: "donation",
+      amount: 500,
+      message: "MaidMode",
+    },
+  ];
+
+  function getTargetName(type?: StreamLabsEventMatcher["type"]) {
+    if (type === undefined) {
+      return "Select Event";
+    }
+
+    switch (type) {
+      case "donation":
+        return "Donation Received";
+    }
+  }
 </script>
 
-Type: <select
-    value={match.type}
-    onchange={(e) => {
-        onchange({
-            type: e.currentTarget.value as StreamLabsEventMatcher["type"],
-        });
-    }}
-    class="p-1 bg-gray-600 text-white rounded"
->
-    {#each streamlabsFilterDemoObjects as demo}
-        <option value={demo.type}>{demo.type}</option>
-    {/each}
-</select>
+<Card.Root>
+  <Card.Content class="grid grid-cols-2 gap-2">
+    When
+    <Select.Root
+      type="single"
+      bind:value={
+        () => match?.type,
+        (newType) => {
+          if ((newType as string) === "") return;
 
-{#if match.type === "donation"}
-    <input
+          onchange({
+            type: newType as StreamLabsEventMatcher["type"],
+          });
+        }
+      }
+    >
+      <Select.Trigger class={placeholder ? "text-muted-foreground" : ""}>
+        {getTargetName(match?.type)}
+      </Select.Trigger>
+      <Select.Content>
+        {#each streamlabsFilterDemoObjects as demo}
+          <Select.Item value={demo.type}>{getTargetName(demo.type)}</Select.Item
+          >
+        {/each}
+      </Select.Content>
+    </Select.Root>
+
+    {#if match?.type === "donation"}
+      Above
+      <Input
         type="number"
         min="0"
-        value={match.amount ?? ""}
-        oninput={(e) => {
-            const val = (e.currentTarget as HTMLInputElement).value;
-            if (val === "") {
-                let { amount, ...rest } = match;
-                onchange(rest);
+        bind:value={
+          () => match.amount ?? 0,
+          (newAmount) => {
+            if (newAmount === 0) {
+              let { amount, ...rest } = match;
+              onchange(rest);
             } else {
-                onchange({
-                    ...match,
-                    amount: parseInt(val),
-                });
+              onchange({
+                ...match,
+                amount: newAmount,
+              });
             }
-        }}
+          }
+        }
         placeholder="Minimum Amount"
-        class="p-1 bg-gray-600 text-white rounded ml-2 w-32"
-    />
-    <input
+      />
+      Containing Message
+      <Input
         type="text"
-        value={match.message ?? ""}
-        oninput={(e) => {
-            const val = (e.currentTarget as HTMLInputElement).value;
-            if (val === "") {
-                let { message, ...rest } = match;
-                onchange(rest);
+        bind:value={
+          () => match.message ?? "",
+          (newMessage) => {
+            if (newMessage === "") {
+              let { message, ...rest } = match;
+              onchange(rest);
             } else {
-                onchange({
-                    ...match,
-                    message: val,
-                });
+              onchange({
+                ...match,
+                message: newMessage,
+              });
             }
+          }
+        }
+        placeholder="This String"
+      />
+    {/if}
+    {#if !placeholder}
+      <Button
+        variant="destructive"
+        class="col-span-2"
+        onclick={() => {
+          onchange(undefined);
         }}
-        placeholder="Message Contains"
-        class="p-1 bg-gray-600 text-white rounded ml-2 w-64"
-    />
-{/if}
+      >
+        Delete
+      </Button>
+    {/if}
+  </Card.Content>
+</Card.Root>

@@ -26,18 +26,18 @@ interface DonationMessage {
 export type StreamLabsEventMatcher = { "type": "donation"; amount?: number; message?: string };
 
 export async function handleStreamlabsEvent(event: StreamLabsEvent) {
-    let rewards = get(rewardStore).rewards.filter((r) => r.on.type === "streamlabs");
+    const rewards = get(rewardStore).rewards.filter((r) => r.on.type === "streamlabs");
 
-    for (let reward of rewards) {
-        let matches = reward.on.matches as StreamLabsEventMatcher[];
+    for (const reward of rewards) {
+        const matches = reward.on.matches as StreamLabsEventMatcher[];
 
-        match: for (let m of matches) {
+        match: for (const m of matches) {
             if (m.type !== event.type) {
                 continue;
             }
 
             switch (m.type) {
-                case "donation":
+                case "donation": {
                     const filter = m as Extract<StreamLabsEventMatcher, { type: "donation" }>;
                     for (const message of (m.message as unknown as DonationMessage[]) ?? []) {
                         if ((message.amount >= (filter.amount ?? 0)) && (message.message.includes(filter.message ?? ""))) {
@@ -47,6 +47,7 @@ export async function handleStreamlabsEvent(event: StreamLabsEvent) {
                     }
                     // Checked the donation messages, and they might have matched already so for this type we can stop here
                     continue match;
+                }
             }
         }
     }

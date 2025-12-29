@@ -26,7 +26,7 @@
         info(`WebSocket created: ${JSON.stringify(ws)}`);
         const conn = onConnect(ws, restartWebsocket);
 
-        let cancel = ws.addListener((message) => {
+        const cancel = ws.addListener((message) => {
             switch (message.type) {
                 case "Close":
                     clientStateStore.update((s) => ({

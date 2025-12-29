@@ -27,7 +27,7 @@
       {/if}
     </StatusButton>
   {:else}
-    <div class="p-8 rounded bg-gray-800 text-center flex-1">
+    <div class="p-8 rounded dark:bg-gray-800 bg-gray-300 text-center flex-1">
       Not connected to backend
     </div>
   {/if}

@@ -3,7 +3,7 @@
     import { cubicIn, cubicOut } from "svelte/easing";
     import { onMount } from "svelte";
 
-    let {
+    const {
         cogSpinning = true,
         width,
         height,

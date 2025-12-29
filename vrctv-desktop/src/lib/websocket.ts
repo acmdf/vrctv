@@ -86,10 +86,10 @@ class ServerConnection {
 }
 
 export function onConnect(i: WebSocket, retryMethod: () => void): ServerConnection {
-    let conn = new ServerConnection(i, retryMethod);
+    const conn = new ServerConnection(i, retryMethod);
     serverConnection.set(conn);
     conn.connected = true;
-    let stateToken = localStorage.getItem("stateToken");
+    const stateToken = localStorage.getItem("stateToken");
     info(`WebSocket connection established with state token: ${stateToken}`);
 
     if (stateToken) {
@@ -130,7 +130,7 @@ export async function sendNotif(title: string, message: string) {
 
 
 export function handleMessage(message: MessageKind<"Text", string>) {
-    let parsed = ServerConnection.parse_message(message);
+    const parsed = ServerConnection.parse_message(message);
 
     if (!parsed) return;
 
@@ -146,13 +146,14 @@ export function handleMessage(message: MessageKind<"Text", string>) {
             }
             toast.error("Could not get the connection token from the server.");
             break;
-        case "connectResponse":
+        case "connectResponse": {
             // Remove type field
-            let { type, ...rest } = parsed;
+            const { type, ...rest } = parsed;
 
             // Merge the rest of the fields into the client state store
             clientStateStore.update(state => ({ ...state, ...rest }));
             break;
+        }
         case "changeAvatar":
             commands.changeAvatar(parsed.id);
             info(`Changing avatar to ${parsed.id}`);

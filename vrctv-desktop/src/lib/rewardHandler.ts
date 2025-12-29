@@ -5,7 +5,7 @@ import { commands } from "../bindings";
 export async function addReward(reward: Reward) {
     switch (reward.type) {
         case "avatar": {
-            let queue = get(avatarRewardQueue);
+            const queue = get(avatarRewardQueue);
             avatarRewardQueue.update((q) => [...q, reward]);
 
             if (queue.length > 0) {
@@ -51,14 +51,14 @@ export async function addReward(reward: Reward) {
 
 export async function cancelReward(avatar: boolean = true, overlay: OverlayReward["overlay"] | null = null) {
     if (avatar) {
-        let avatarTimeout = get(currentAvatarRewardTimeout);
+        const avatarTimeout = get(currentAvatarRewardTimeout);
         if (avatarTimeout) {
             clearTimeout(avatarTimeout);
             finishAvatarReward();
         }
     }
     if (overlay) {
-        let overlayTimeout = get(currentOverlayRewardTimeout);
+        const overlayTimeout = get(currentOverlayRewardTimeout);
 
         if (overlayTimeout[overlay]) {
             clearTimeout(overlayTimeout[overlay]);
@@ -70,13 +70,13 @@ export async function cancelReward(avatar: boolean = true, overlay: OverlayRewar
 }
 
 async function finishAvatarReward() {
-    let queue = get(avatarRewardQueue);
+    const queue = get(avatarRewardQueue);
     queue.shift();
     avatarRewardQueue.set(queue);
     if (queue.length > 0) {
         handleAvatarReward(queue[0]);
     } else {
-        let baseAvatarId = get(rewardStore).baseAvatarId ?? "";
+        const baseAvatarId = get(rewardStore).baseAvatarId ?? "";
         await commands.changeAvatar(baseAvatarId);
         for (const [key, value] of Object.entries(get(rewardStore).baseParams ?? {})) {
             await commands.setOsc(key, value);
@@ -94,12 +94,12 @@ async function handleAvatarReward(reward: AvatarReward) {
 
     currentReward.set(reward);
 
-    let timeout = setTimeout(finishAvatarReward, reward.timeoutSeconds * 1000);
+    const timeout = setTimeout(finishAvatarReward, reward.timeoutSeconds * 1000);
     currentAvatarRewardTimeout.set(timeout);
 }
 
 async function finishOverlayReward(overlay: OverlayReward["overlay"]) {
-    let queue = get(overlayRewardQueue)[overlay];
+    const queue = get(overlayRewardQueue)[overlay];
     queue.shift();
     overlayRewardQueue.update((q) => {
         q[overlay] = queue;
@@ -109,9 +109,9 @@ async function finishOverlayReward(overlay: OverlayReward["overlay"]) {
     if (queue.length > 0) {
         handleOverlayReward(queue[0]);
     } else {
-        let overlayVisibility = get(overlayVisibleStore);
-        let overlayList = get(overlays);
-        let overlayItem = overlayList.find((o) => o.id === overlay);
+        const overlayVisibility = get(overlayVisibleStore);
+        const overlayList = get(overlays);
+        const overlayItem = overlayList.find((o) => o.id === overlay);
 
         overlayVisibility[overlay] = overlayItem ? overlayItem.visible : false;
         overlayVisibleStore.set(overlayVisibility);
@@ -120,15 +120,15 @@ async function finishOverlayReward(overlay: OverlayReward["overlay"]) {
 
 
 async function handleOverlayReward(reward: OverlayReward) {
-    let overlayVisibility = get(overlayVisibleStore);
+    const overlayVisibility = get(overlayVisibleStore);
     overlayVisibility[reward.overlay] = reward.show;
     overlayVisibleStore.set(overlayVisibility);
 
-    let timeout = setTimeout(async () => {
+    const timeout = setTimeout(async () => {
         await finishOverlayReward(reward.overlay);
     }, reward.timeoutSeconds * 1000);
 
-    let currentTimeouts = get(currentOverlayRewardTimeout);
+    const currentTimeouts = get(currentOverlayRewardTimeout);
     currentTimeouts[reward.overlay] = timeout;
     currentOverlayRewardTimeout.set(currentTimeouts);
 }

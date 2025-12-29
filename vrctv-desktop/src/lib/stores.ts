@@ -84,13 +84,13 @@ export const overlayVisibleStore: Writable<Record<number, boolean>> = writable({
 export type Reward = AvatarReward | AvatarCancelReward | OverlayReward | OverlayCancelReward;
 
 export interface RewardStoreState {
-    baseAvatarId: string | null;
+    baseAvatarId: string | undefined;
     baseParams: Record<string, string>;
     rewards: Reward[];
 }
 
 export interface AvatarReward {
-    setsAvatar: string | null;
+    setsAvatar: string | undefined;
     setParams: Record<string, string>;
     title: string;
     timeoutSeconds: number;

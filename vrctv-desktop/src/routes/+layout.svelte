@@ -19,7 +19,7 @@
     onMount(async () => {
         await attachConsole();
     });
-    let { children } = $props();
+    const { children } = $props();
 
     onMount(() => {
         events.serviceStatusEvent.listen((event) => {
@@ -27,7 +27,7 @@
                 toast.success(`${event.payload.service} service started`);
             } else if (event.payload.status === "Stopped") {
                 toast.error(`${event.payload.service} service stopped`);
-            } else if (event.payload.status.hasOwnProperty("Error")) {
+            } else if (Object.hasOwn(event.payload.status, "Error")) {
                 toast.error(
                     `${event.payload.service} service error: ${event.payload.status.Error}`,
                 );

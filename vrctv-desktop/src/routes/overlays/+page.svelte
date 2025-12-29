@@ -1,7 +1,7 @@
 <script lang="ts">
     import { overlays, overlayVisibleStore } from "$lib/stores";
     import { open } from "@tauri-apps/plugin-dialog";
-    import { type OverlayItem } from "../../bindings";
+    import type { OverlayItem } from "../../bindings";
     import { Minus } from "@lucide/svelte";
     import { readFile } from "@tauri-apps/plugin-fs";
 
