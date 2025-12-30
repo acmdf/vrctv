@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { StreamLabsEventMatcher } from "$lib/streamlabs";
   import * as Card from "$lib/components/ui/card";
+  import * as InputGroup from "$lib/components/ui/input-group";
   import * as Select from "$lib/components/ui/select";
   import Input from "./ui/input/input.svelte";
   import Button from "./ui/button/button.svelte";
@@ -64,7 +65,8 @@
 
     {#if match?.type === "donation"}
       Above
-      <Input
+      <InputGroup.Root>
+      <InputGroup.Input
         type="number"
         min="0"
         bind:value={
@@ -83,6 +85,8 @@
         }
         placeholder="Minimum Amount"
       />
+      <InputGroup.Addon align="inline-end"><InputGroup.Text>In Local Currency</InputGroup.Text></InputGroup.Addon>
+      </InputGroup.Root>
       Containing Message
       <Input
         type="text"

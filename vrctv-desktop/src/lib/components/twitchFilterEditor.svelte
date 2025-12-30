@@ -2,10 +2,10 @@
   import { customRewardsStore } from "$lib/stores";
   import type { TwitchEventSource } from "../../../../vrctv-common/bindings/TwitchEventSource";
   import * as Card from "$lib/components/ui/card";
-  import { Input } from "$lib/components/ui/input";
+  import * as InputGroup from "$lib/components/ui/input-group";
   import * as Select from "$lib/components/ui/select";
+  import { Input } from "$lib/components/ui/input";
   import Button from "./ui/button/button.svelte";
-  import { Root } from "./ui/button";
 
   const {
     placeholder = false,
@@ -121,24 +121,29 @@
       </Select.Root>
     {:else if match?.type === "BitDonation"}
       Above
-      <Input
-        type="number"
-        min="0"
-        value={match.amount ?? ""}
-        oninput={(e) => {
-          const val = (e.currentTarget as HTMLInputElement).value;
-          if (val === "") {
-            let { amount, ...rest } = match;
-            onchange(rest);
-          } else {
-            onchange({
-              ...match,
-              amount: parseInt(val),
-            });
-          }
-        }}
-        placeholder="500"
-      />
+      <InputGroup.Root>
+        <InputGroup.Input
+          type="number"
+          min="0"
+          value={match.amount ?? ""}
+          oninput={(e) => {
+            const val = (e.currentTarget as HTMLInputElement).value;
+            if (val === "") {
+              let { amount, ...rest } = match;
+              onchange(rest);
+            } else {
+              onchange({
+                ...match,
+                amount: parseInt(val),
+              });
+            }
+          }}
+          placeholder="500"
+        />
+        <InputGroup.Addon align="inline-end"
+          ><InputGroup.Text>Bits</InputGroup.Text></InputGroup.Addon
+        >
+      </InputGroup.Root>
       With text
       <Input
         type="text"

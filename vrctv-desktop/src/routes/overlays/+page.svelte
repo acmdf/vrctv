@@ -122,7 +122,7 @@
       </Card.Header>
       <hr />
       <Card.Content class="flex flex-row space-x-2">
-        <OverlayPreview {overlay} class="max-w-lg flex-1" />
+        <OverlayPreview {overlay} class="border border-2 w-sm h-auto max-w-[50%]" />
         <div>
           <div class="grid items-center gap-1.5 mb-4">
             <Label>By Default</Label>

@@ -53,7 +53,7 @@
   }
 
   function overlayName(overlay: number) {
-    return $overlays.find((o) => o.id == overlay) ?? "Select Overlay";
+    return $overlays.find((o) => o.id == overlay)?.name ?? "Select Overlay";
   }
 </script>
 
