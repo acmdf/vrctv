@@ -1,4 +1,7 @@
-use std::{fs, sync::Arc};
+use std::{
+    fs,
+    sync::Arc,
+};
 
 use glob::glob;
 use log::info;
@@ -155,6 +158,29 @@ pub async fn set_osc(app: AppHandle, param: &str, value: &str) -> Result<(), Str
 
     // Send OSC Message to change avatar
     osc.send(packet, "VRChat-Client-*")
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn set_warudo_osc(app: AppHandle, param: &str, value: &str) -> Result<(), String> {
+    let osc = app.state::<Arc<vrchat_osc::VRChatOSC>>();
+    let packet = OscPacket::Message(OscMessage {
+        addr: param.into(),
+        args: vec![if let Ok(num) = value.parse::<f32>() {
+            rosc::OscType::Float(num)
+        } else if value == "true" {
+            rosc::OscType::Bool(true)
+        } else if value == "false" {
+            rosc::OscType::Bool(false)
+        } else {
+            rosc::OscType::String(value.into())
+        }],
+    });
+
+    // Send OSC Message to change avatar
+    osc.send_to_addr(packet, "127.0.0.1:19190".parse().unwrap())
         .await
         .map_err(|e| e.to_string())
 }

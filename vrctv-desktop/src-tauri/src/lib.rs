@@ -1,7 +1,6 @@
 use std::time::Duration;
 
 use log::{error, LevelFilter};
-use vrctv_overlay::start_server;
 use serde::{Deserialize, Serialize};
 use specta::Type;
 #[cfg(debug_assertions)]
@@ -12,9 +11,10 @@ use tokio::{
     sync::{broadcast, mpsc, watch},
     time::sleep,
 };
+use vrctv_overlay::start_server;
 
 use crate::{
-    avatars::{change_avatar, fetch_avatar_osc, fetch_avatars, set_osc},
+    avatars::{change_avatar, fetch_avatar_osc, fetch_avatars, set_osc, set_warudo_osc},
     osc::osc_message_broadcaster,
     overlay::{send_overlay_command, update_overlays},
     xsoverlay::{send_notification, xsoverlay_notifier},
@@ -66,6 +66,7 @@ pub fn run() {
             fetch_avatar_osc,
             change_avatar,
             set_osc,
+            set_warudo_osc,
             send_notification,
             send_overlay_command,
             update_overlays,

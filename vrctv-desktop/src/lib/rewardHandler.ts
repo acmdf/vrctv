@@ -1,5 +1,5 @@
 import { get } from "svelte/store";
-import { currentReward, overlayVisibleStore, avatarRewardQueue, rewardStore, type AvatarReward, type Reward, type RewardStoreState, overlayRewardQueue, type OverlayReward, overlays, currentAvatarRewardTimeout, currentOverlayRewardTimeout } from "./stores";
+import { currentReward, overlayVisibleStore, avatarRewardQueue, rewardStore, type AvatarReward, type Reward, type RewardStoreState, overlayRewardQueue, type OverlayReward, overlays, currentAvatarRewardTimeout, currentOverlayRewardTimeout, warudoOscSetRewardTimeouts } from "./stores";
 import { commands } from "../bindings";
 
 export async function addReward(reward: Reward) {
@@ -46,7 +46,56 @@ export async function addReward(reward: Reward) {
             await cancelReward(false, reward.overlay);
             break;
         }
+        case "warudoOsc": {
+            const queue = get(warudoOscSetRewardTimeouts);
+
+            for (const [address, value] of Object.entries(reward.onStart)) {
+                await commands.setWarudoOsc(address, value);
+            }
+
+            for (const address of Object.keys(reward.onStop)) {
+                if (queue[address]) {
+                    clearTimeout(queue[address][0]);
+                    finishWarudoOscSetReward(address);
+                }
+
+                const timeout = setTimeout(async () => {
+                    finishWarudoOscSetReward(address);
+                });
+
+                queue[address] = [timeout, reward.onStop[address]];
+            }
+
+            warudoOscSetRewardTimeouts.set(queue);
+            break;
+        }
+        case "warudoOscCancel": {
+            const queue = get(warudoOscSetRewardTimeouts);
+
+            for (const address of Object.keys(reward.addresses)) {
+                if (queue[address]) {
+                    clearTimeout(queue[address][0]);
+                    finishWarudoOscSetReward(address);
+                }
+            }
+
+            warudoOscSetRewardTimeouts.set(queue);
+            break;
+        }
     }
+}
+
+async function finishWarudoOscSetReward(address: string) {
+    const queue = get(warudoOscSetRewardTimeouts);
+
+    if (!queue[address]) return;
+
+    const value = queue[address][1];
+    delete queue[address];
+
+    await commands.setWarudoOsc(address, value);
+
+    warudoOscSetRewardTimeouts.set(queue);
 }
 
 export async function cancelReward(avatar: boolean = true, overlay: OverlayReward["overlay"] | null = null) {
@@ -85,7 +134,6 @@ async function finishAvatarReward() {
     }
 }
 
-
 async function handleAvatarReward(reward: AvatarReward) {
     await commands.changeAvatar(reward.setsAvatar ?? get(rewardStore).baseAvatarId ?? "");
     for (const [key, value] of Object.entries(reward.setParams ?? {})) {
@@ -117,7 +165,6 @@ async function finishOverlayReward(overlay: OverlayReward["overlay"]) {
         overlayVisibleStore.set(overlayVisibility);
     }
 }
-
 
 async function handleOverlayReward(reward: OverlayReward) {
     const overlayVisibility = get(overlayVisibleStore);

@@ -74,6 +74,12 @@ export const avatarRewardQueue: Writable<AvatarReward[]> = writable([]);
 export const currentAvatarRewardTimeout: Writable<number | null> = writable(null);
 export const overlayRewardQueue: Writable<{ [key: number]: OverlayReward[] }> = writable([]);
 export const currentOverlayRewardTimeout: Writable<{ [key: number]: number | null }> = writable({});
+
+// Yes, I know this is three different ways to implement cancellable rewards, but
+// I promiseee this is all going to change when the reward system is overhauled to be more generic.
+
+export const warudoOscSetRewardTimeouts: Writable<{ [address: string]: [number, string] | null }> = writable({});
+
 export const currentReward: Writable<Reward | null> = writable(null);
 export const overlays: Writable<OverlayItem[]> = persisted(
     "overlaysStore",
@@ -81,7 +87,7 @@ export const overlays: Writable<OverlayItem[]> = persisted(
 );
 export const overlayVisibleStore: Writable<Record<number, boolean>> = writable({});
 
-export type Reward = AvatarReward | AvatarCancelReward | OverlayReward | OverlayCancelReward;
+export type Reward = AvatarReward | AvatarCancelReward | OverlayReward | OverlayCancelReward | WarudoOscSetReward | WarudoOscCancelReward;
 
 export interface RewardStoreState {
     baseAvatarId: string | undefined;
@@ -102,6 +108,22 @@ export interface AvatarCancelReward {
     title: string;
     on: Trigger;
     type: "avatarCancel";
+}
+
+export interface WarudoOscSetReward {
+    onStart: Record<string, string>;
+    onStop: Record<string, string>;
+    title: string;
+    timeoutSeconds: number;
+    on: Trigger;
+    type: "warudoOsc";
+}
+
+export interface WarudoOscCancelReward {
+    title: string;
+    on: Trigger;
+    addresses: string[];
+    type: "warudoOscCancel";
 }
 
 export interface OverlayReward {

@@ -19,6 +19,8 @@
   import { warn } from "@tauri-apps/plugin-log";
   import { sendNotif, serverConnection } from "$lib/websocket";
   import toast from "svelte-french-toast";
+  import Input from "$lib/components/ui/input/input.svelte";
+  import Button from "$lib/components/ui/button/button.svelte";
 
   const { data }: PageProps = $props();
 
@@ -37,7 +39,7 @@
   const avatars = $derived(
     data.status === "ok"
       ? data.data.sort((a, b) => a.name.localeCompare(b.name))
-      : []
+      : [],
   );
 
   function formatValue(value: any): string {
@@ -52,7 +54,7 @@
       type: "twitchTrigger",
       GetCustomRewards: {
         request_id: $serverConnection?.getNextRequestId(
-          "Get Custom Rewards - Debug Page"
+          "Get Custom Rewards - Debug Page",
         ),
       },
     });
@@ -68,7 +70,7 @@
     onclick={() =>
       sendNotif(
         "Test Notification",
-        "This is a test notification from the debug page."
+        "This is a test notification from the debug page.",
       )}
   >
     Test notification
@@ -110,7 +112,7 @@
       class="p-2 bg-gray-800 text-white rounded hover:bg-gray-700"
       onclick={async () => {
         toast.success(
-          JSON.stringify(await commands.setOsc(setParam, setValue))
+          JSON.stringify(await commands.setOsc(setParam, setValue)),
         );
       }}
     >
@@ -120,6 +122,35 @@
     <p class="text-red-500">Error: {params.error}</p>
   {/if}
 </div>
+
+<h2 class="text-2xl font-bold mb-2">Test Warudo OSC Parameter</h2>
+<Input
+  type="text"
+  placeholder="Parameter Name"
+  bind:value={setParam}
+  class="p-2 bg-gray-800 text-white rounded w-1/3 mr-2 mb-2"
+/>
+<Input
+  type="text"
+  placeholder="Parameter Value"
+  bind:value={setValue}
+  class="p-2 bg-gray-800 text-white rounded w-1/3 mr-2 mb-2"
+/>
+<Button
+  class="p-2 bg-gray-800 text-white rounded hover:bg-gray-700 mb-4"
+  onclick={async () => {
+    toast.success(
+      JSON.stringify(
+        await commands.setWarudoOsc(
+          setParam,
+          setValue,
+        ),
+      ),
+    );
+  }}
+>
+  Set Warudo Parameter
+</Button>
 
 <h2 class="text-2xl font-bold mb-2">Client Info</h2>
 <div class="mb-4">

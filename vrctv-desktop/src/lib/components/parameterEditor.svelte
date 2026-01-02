@@ -3,19 +3,20 @@
   import * as Select from "$lib/components/ui/select/index.js";
   import * as InputGroup from "$lib/components/ui/input-group/index.js";
   import { Minus } from "@lucide/svelte";
+  import Input from "./ui/input/input.svelte";
 
   const {
     avatarId,
     param,
     value,
     onChange,
-    placeholder = false,
+    placeholder = "",
   }: {
-    avatarId: string;
+    avatarId?: string;
     param: string | null;
-    value: string;
+    value?: string;
     onChange: (param: string | null, value: string) => void;
-    placeholder?: boolean;
+    placeholder?: string;
   } = $props();
 
   function removeUselessParams(params: string[]): string[] {
@@ -23,7 +24,7 @@
       (p) =>
         !p.includes("SyncData") &&
         ["FT/v2", "Go/"].every(
-          (uselessPrefix) => !p.startsWith(uselessPrefix)
+          (uselessPrefix) => !p.startsWith(uselessPrefix),
         ) &&
         [
           "/LastSynced",
@@ -32,45 +33,53 @@
           "_Angle",
           "_IsPosed",
           "_IsGrabbed",
-        ].every((uselessEnding) => !p.endsWith(uselessEnding))
+        ].every((uselessEnding) => !p.endsWith(uselessEnding)),
     );
   }
 
   const triggerText = $derived(
     param && param.startsWith("/avatar/parameters/")
       ? "Set " + param.replace("/avatar/parameters/", "")
-      : "Set this parameter"
+      : placeholder,
   );
 
-  const paramsLoad = $derived(await commands.fetchAvatarOsc(avatarId));
+  const paramsLoad = $derived(
+    avatarId ? await commands.fetchAvatarOsc(avatarId) : undefined,
+  );
 
   $effect(() => {
-    const availableParams = paramsLoad.status === "ok" ? paramsLoad.data : [];
+    if (!avatarId || !paramsLoad) return;
 
     if (
       param &&
       paramsLoad.status === "ok" &&
-      !availableParams.includes(param.replace("/avatar/parameters/", ""))
+      !paramsLoad.data.includes(param.replace("/avatar/parameters/", ""))
     ) {
-      onChange(null, value);
+      onChange(null, value || "");
     }
   });
 </script>
 
-{#if paramsLoad.status === "ok"}
-  {#if paramsLoad.data.length > 0}
-    <div class="flex flex-row items-center p-2 space-x-2">
+{#if paramsLoad && paramsLoad.status !== "ok"}
+  <p class="text-red-500 p-2">Error: {paramsLoad.error}</p>
+{:else if paramsLoad && paramsLoad.data.length <= 0}
+  <p class="text-yellow-500 p-2">No parameters found for this avatar.</p>
+{:else}
+  <div class="flex flex-row items-center p-2 space-x-2">
+    {#if paramsLoad}
       <Select.Root
         type="single"
         bind:value={
           () => param || "",
           (selectedParam: string) => {
-            onChange(selectedParam, value);
+            onChange(selectedParam, value || "");
           }
         }
       >
         <Select.Trigger
-          class={placeholder ? "text-muted-foreground min-w-sm" : "min-w-sm"}
+          class={placeholder
+            ? "text-muted-foreground xl:min-w-sm"
+            : "xl:min-w-sm"}
         >
           {triggerText}
         </Select.Trigger>
@@ -82,6 +91,19 @@
           {/each}
         </Select.Content>
       </Select.Root>
+    {:else}
+      <Input
+        bind:value={
+          () => param || "",
+          (selectedParam: string) => {
+            onChange(selectedParam, value || "");
+          }
+        }
+        class="xl:min-w-sm"
+        placeholder={triggerText}
+      />
+    {/if}
+    {#if value !== undefined}
       <InputGroup.Root>
         <InputGroup.Input
           type="text"
@@ -95,20 +117,16 @@
           <InputGroup.Text>To:</InputGroup.Text>
         </InputGroup.Addon>
       </InputGroup.Root>
-      {#if !placeholder}
-        <Minus
-          class="text-red-500 cursor-pointer h-4"
-          size="64"
-          strokeWidth={8}
-          onclick={() => {
-            onChange(null, value);
-          }}
-        />
-      {/if}
-    </div>
-  {:else}
-    <p class="text-yellow-500 p-2">No parameters found for this avatar.</p>
-  {/if}
-{:else}
-  <p class="text-red-500 p-2">Error: {paramsLoad.error}</p>
+    {/if}
+    {#if !placeholder}
+      <Minus
+        class="text-red-500 cursor-pointer h-4"
+        size="64"
+        strokeWidth={8}
+        onclick={() => {
+          onChange(null, value || "");
+        }}
+      />
+    {/if}
+  </div>
 {/if}

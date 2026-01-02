@@ -29,7 +29,7 @@
   const avatars = $derived(
     data.status === "ok"
       ? data.data.sort((a, b) => a.name.localeCompare(b.name))
-      : []
+      : [],
   );
 
   $effect(() => {
@@ -37,7 +37,7 @@
       type: "twitchTrigger",
       GetCustomRewards: {
         request_id: $serverConnection?.getNextRequestId(
-          "Get Custom Rewards - Rewards Page"
+          "Get Custom Rewards - Rewards Page",
         ),
       },
     });
@@ -49,6 +49,8 @@
       overlay: "Set Overlay State",
       avatarCancel: "Cancel the current Avatar",
       overlayCancel: "Cancel a certain Overlay",
+      warudoOsc: "Set Warudo OSC State",
+      warudoOscCancel: "Cancel Warudo OSC Change",
     }[type];
   }
 
@@ -102,7 +104,7 @@
       {/each}
       <ParameterEditor
         avatarId={$rewardStore.baseAvatarId ?? ""}
-        placeholder={true}
+        placeholder="Set this parameter"
         param=""
         value=""
         onChange={(param, val) => {
@@ -170,6 +172,12 @@
                 reward.timeoutSeconds = 300;
               } else if (reward.type === "overlayCancel") {
                 reward.overlay = -1;
+              } else if (reward.type === "warudoOsc") {
+                reward.onStart = {};
+                reward.onStop = {};
+                reward.timeoutSeconds = 300;
+              } else if (reward.type === "warudoOscCancel") {
+                reward.addresses = [];
               }
               $rewardStore = { ...$rewardStore };
             }}
@@ -188,6 +196,14 @@
                 <Select.Item value="overlay">Set Overlay State</Select.Item>
                 <Select.Item value="overlayCancel">Cancel Overlay</Select.Item>
               </Select.Group>
+              <Select.Group>
+                <Select.Label>Warudo OSC</Select.Label>
+                <Select.Item value="warudoOsc">Set Warudo OSC State</Select.Item
+                >
+                <Select.Item value="warudoOscCancel">
+                  Cancel Warudo OSC Change
+                </Select.Item>
+              </Select.Group>
             </Select.Content>
           </Select.Root>
         </div>
@@ -205,7 +221,7 @@
       </Card.Header>
       <hr />
       <Card.Content>
-        {#if reward.type === "avatar" || reward.type === "overlay"}
+        {#if reward.type === "avatar" || reward.type === "overlay" || reward.type === "warudoOsc"}
           <div class="grid items-center gap-1.5 mb-4">
             <Label for="timeout-{rewardId}">Timeout</Label>
             <InputGroup.Root class="w-full max-w-lg">
@@ -231,7 +247,9 @@
             <Label>Sets Paramaters</Label>
             {#each Object.entries(reward.setParams) as [param, value]}
               <ParameterEditor
-                avatarId={reward.setsAvatar ?? $rewardStore.baseAvatarId ?? ""}
+                avatarId={reward.setsAvatar?.length === 0
+                  ? ($rewardStore.baseAvatarId ?? "")
+                  : reward.setsAvatar}
                 {param}
                 {value}
                 onChange={(newParam, val) => {
@@ -248,8 +266,10 @@
               />
             {/each}
             <ParameterEditor
-              avatarId={reward.setsAvatar ?? $rewardStore.baseAvatarId ?? ""}
-              placeholder={true}
+              avatarId={reward.setsAvatar?.length === 0
+                ? ($rewardStore.baseAvatarId ?? "")
+                : reward.setsAvatar}
+              placeholder="Set this parameter"
               param=""
               value=""
               onChange={(param, val) => {
@@ -318,6 +338,102 @@
               </Select.Content>
             </Select.Root>
           </div>
+        {:else if reward.type === "warudoOsc"}
+          <div class="grid items-center gap-1.5">
+            <Label>Set on Start</Label>
+            {#each Object.entries(reward.onStart) as [param, value]}
+              <ParameterEditor
+                {param}
+                {value}
+                onChange={(newParam, val) => {
+                  if (param !== newParam) {
+                    delete reward.onStart[param];
+                  }
+
+                  if (newParam) {
+                    reward.onStart[newParam] = val;
+                  }
+
+                  $rewardStore = { ...$rewardStore };
+                }}
+              />
+            {/each}
+            <ParameterEditor
+              placeholder="Set this parameter"
+              param=""
+              value=""
+              onChange={(param, val) => {
+                if (!param) return;
+
+                reward.onStart[param] = val;
+
+                $rewardStore = { ...$rewardStore };
+              }}
+            />
+          </div>
+          <div class="grid items-center gap-1.5">
+            <Label>Set on Stop</Label>
+            {#each Object.entries(reward.onStop) as [param, value]}
+              <ParameterEditor
+                {param}
+                {value}
+                onChange={(newParam, val) => {
+                  if (param !== newParam) {
+                    delete reward.onStop[param];
+                  }
+
+                  if (newParam) {
+                    reward.onStop[newParam] = val;
+                  }
+
+                  $rewardStore = { ...$rewardStore };
+                }}
+              />
+            {/each}
+            <ParameterEditor
+              placeholder="Set this parameter"
+              param=""
+              value=""
+              onChange={(param, val) => {
+                if (!param) return;
+
+                reward.onStop[param] = val;
+
+                $rewardStore = { ...$rewardStore };
+              }}
+            />
+          </div>
+        {:else if reward.type === "warudoOscCancel"}
+          <div class="grid items-center gap-1.5">
+            <Label>Set on Start</Label>
+            {#each reward.addresses as param, index (index)}
+              <ParameterEditor
+                {param}
+                onChange={(newParam, val) => {
+                  if (param !== newParam) {
+                    reward.addresses.splice(index, 1);
+                  }
+
+                  if (newParam) {
+                    reward.addresses[index] = newParam;
+                  }
+
+                  $rewardStore = { ...$rewardStore };
+                }}
+              />
+            {/each}
+            <ParameterEditor
+              placeholder="Cancel Rewards with this parameter"
+              param=""
+              onChange={(param, val) => {
+                if (!param) return;
+
+                reward.addresses.push(param);
+
+                $rewardStore = { ...$rewardStore };
+              }}
+            />
+          </div>
         {/if}
       </Card.Content>
       <hr />
@@ -353,7 +469,7 @@
                     if (newMatch === undefined) return;
 
                     (reward.on.matches as Partial<TwitchEventSource>[]).push(
-                      newMatch
+                      newMatch,
                     );
                     $rewardStore = { ...$rewardStore };
                   }}
@@ -383,7 +499,7 @@
                     if (newMatch === undefined) return;
 
                     (reward.on.matches as StreamLabsEventMatcher[]).push(
-                      newMatch
+                      newMatch,
                     );
                     $rewardStore = { ...$rewardStore };
                   }}
