@@ -8,7 +8,7 @@
     avatars,
     avatarId = $bindable(undefined),
   }: {
-    label: string;
+    label?: string;
     avatars: Avatar[];
     avatarId?: string;
   } = $props();
@@ -21,7 +21,9 @@
 </script>
 
 <div class="grid items-center gap-1.5">
-  <Label>{label}</Label>
+  {#if label}
+    <Label>{label}</Label>
+  {/if}
   <div class="flex flex-row items-center mb-4">
     <Select.Root bind:value={avatarId} type="single">
       <Select.Trigger>

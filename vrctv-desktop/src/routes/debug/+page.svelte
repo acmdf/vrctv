@@ -1,26 +1,17 @@
 <script lang="ts">
-  import { onMount } from "svelte";
   import { commands } from "../../bindings";
   import {
-    serviceStateStore,
     oscStateStore,
     clientStateStore,
-    taskStateStore,
-    rewardStore,
-    customRewardsStore,
-    eventLogStore,
-    avatarRewardQueue,
-    currentReward,
-    defaultRewardStore,
-    currentAvatarRewardTimeout,
-    currentOverlayRewardTimeout,
-  } from "$lib/stores";
+  } from "$lib/stores/global";
   import type { PageProps } from "./$types";
   import { warn } from "@tauri-apps/plugin-log";
   import { sendNotif, serverConnection } from "$lib/websocket";
   import toast from "svelte-french-toast";
   import Input from "$lib/components/ui/input/input.svelte";
   import Button from "$lib/components/ui/button/button.svelte";
+  import { eventLogStore, serviceStateStore, taskStateStore } from "$lib/stores/debug";
+    import { customRewardsStore, defaultRewardStore, rewardStore } from "$lib/stores/rewards";
 
   const { data }: PageProps = $props();
 
@@ -140,12 +131,7 @@
   class="p-2 bg-gray-800 text-white rounded hover:bg-gray-700 mb-4"
   onclick={async () => {
     toast.success(
-      JSON.stringify(
-        await commands.setWarudoOsc(
-          setParam,
-          setValue,
-        ),
-      ),
+      JSON.stringify(await commands.setWarudoOsc(setParam, setValue)),
     );
   }}
 >
@@ -198,54 +184,6 @@
       {formatValue(event)}
     </div>
   {/each}
-</div>
-
-<h2 class="text-2xl font-bold mb-2">Current Queue</h2>
-<div class="mb-4 max-h-64 overflow-y-auto">
-  {#each $avatarRewardQueue as reward, index (index)}
-    <div class="flex p-2 items-center border-b border-gray-700">
-      <p class="text-md bg-gray-800 rounded p-2 mr-2">{index + 1}</p>
-      {formatValue(reward)}
-    </div>
-  {/each}
-</div>
-<h2 class="text-2xl font-bold mb-2">Current Avatar Timeout</h2>
-<div class="mb-4">
-  {#if $currentAvatarRewardTimeout}
-    <p class="text-md bg-gray-800 rounded p-2 mr-2">
-      Timeout ID: {$currentAvatarRewardTimeout}
-    </p>
-  {:else}
-    <p class="text-gray-400">No current timeout set.</p>
-  {/if}
-</div>
-<h2 class="text-2xl font-bold mb-2">Current Overlay Timeouts</h2>
-<div class="mb-4">
-  {#each Object.entries($currentOverlayRewardTimeout) as [overlay, timeout]}
-    <div class="flex p-2 items-center">
-      <p class="text-md bg-gray-800 rounded p-2 mr-2">
-        Overlay ID: {overlay}
-      </p>
-      {#if timeout}
-        <p class="text-md bg-gray-800 rounded p-2 mr-2">
-          Timeout ID: {timeout}
-        </p>
-      {:else}
-        <p class="text-gray-400">No current timeout set.</p>
-      {/if}
-    </div>
-  {/each}
-</div>
-<h2 class="text-2xl font-bold mb-2">Current Reward</h2>
-<div class="mb-4 max-h-64 overflow-y-auto">
-  {#if $currentReward}
-    <div class="flex p-2 items-center border-b border-gray-700">
-      <p class="text-md bg-gray-800 rounded p-2 mr-2">1</p>
-      {formatValue($currentReward)}
-    </div>
-  {:else}
-    <p class="text-gray-400">No current reward being processed.</p>
-  {/if}
 </div>
 
 <h2 class="text-2xl font-bold mb-2">OSC State</h2>

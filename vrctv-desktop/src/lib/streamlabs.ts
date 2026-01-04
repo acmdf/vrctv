@@ -1,10 +1,4 @@
-import { get } from "svelte/store";
-import type { TwitchEventSource } from "../../../vrctv-common/bindings/TwitchEventSource";
-import { rewardStore } from "./stores";
-import { addReward } from "./rewardHandler";
-import type { StreamLabsEvent } from "../../../vrctv-common/bindings/StreamLabsEvent";
-
-interface DonationMessage {
+export interface DonationMessage {
     _id: string;
     amount: number;
     currency: string;
@@ -23,32 +17,4 @@ interface DonationMessage {
     unsavedSettings: unknown[];
 }
 
-export type StreamLabsEventMatcher = { "type": "donation"; amount?: number; message?: string };
-
-export async function handleStreamlabsEvent(event: StreamLabsEvent) {
-    const rewards = get(rewardStore).rewards.filter((r) => r.on.type === "streamlabs");
-
-    for (const reward of rewards) {
-        const matches = reward.on.matches as StreamLabsEventMatcher[];
-
-        match: for (const m of matches) {
-            if (m.type !== event.type) {
-                continue;
-            }
-
-            switch (m.type) {
-                case "donation": {
-                    const filter = m as Extract<StreamLabsEventMatcher, { type: "donation" }>;
-                    for (const message of (m.message as unknown as DonationMessage[]) ?? []) {
-                        if ((message.amount >= (filter.amount ?? 0)) && (message.message.includes(filter.message ?? ""))) {
-                            console.log(`Matched donation message ${JSON.stringify(message)} for event ${JSON.stringify(event)}`);
-                            addReward(reward);
-                        }
-                    }
-                    // Checked the donation messages, and they might have matched already so for this type we can stop here
-                    continue match;
-                }
-            }
-        }
-    }
-}
+export type KnownStreamlabsEvents = { "type": "donation"; amount: number; message: DonationMessage[] };

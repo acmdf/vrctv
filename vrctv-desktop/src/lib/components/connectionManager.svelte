@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { clientStateStore } from "../stores";
+    import { clientStateStore } from "../stores/global";
     import { handleMessage, onConnect } from "$lib/websocket";
     import { PUBLIC_WEBSOCKET_URL } from "$env/static/public";
     import { debug, info, warn } from "@tauri-apps/plugin-log";
@@ -59,7 +59,7 @@
     }
 
     onMount(() => {
-        console.warn(
+        warn(
             "Mounting connection manager and trying to create WebSocket",
         );
         tryCreateWebSocket();

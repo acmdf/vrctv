@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { overlays, overlayVisibleStore } from "$lib/stores";
+  import { overlays, overlayVisibleStore } from "$lib/stores/overlays";
   import { open } from "@tauri-apps/plugin-dialog";
   import type { OverlayItem } from "../../bindings";
   import { Folder, Plus } from "@lucide/svelte";
@@ -14,7 +14,7 @@
   function updateOverlay<T extends keyof OverlayItem>(
     id: number,
     field: T,
-    value: OverlayItem[T]
+    value: OverlayItem[T],
   ) {
     let overlay = $overlays.find((o) => o.id === id);
 
@@ -103,13 +103,13 @@
                 if (file && typeof file === "string") {
                   // Convert file to base64 URL
                   const fileData = await readFile(
-                    `file://${file.replaceAll("\\", "/")}`
+                    `file://${file.replaceAll("\\", "/")}`,
                   );
                   const base64Url = `data:text/html;base64,${btoa(
                     new Uint8Array(fileData).reduce(
                       (data, byte) => data + String.fromCharCode(byte),
-                      ""
-                    )
+                      "",
+                    ),
                   )}`;
                   updateOverlay(overlay.id, "url", base64Url);
                 }
@@ -122,7 +122,10 @@
       </Card.Header>
       <hr />
       <Card.Content class="flex flex-row space-x-2">
-        <OverlayPreview {overlay} class="border border-2 w-sm h-auto max-w-[50%]" />
+        <OverlayPreview
+          {overlay}
+          class="border border-2 w-sm h-auto max-w-[50%]"
+        />
         <div>
           <div class="grid items-center gap-1.5 mb-4">
             <Label>By Default</Label>

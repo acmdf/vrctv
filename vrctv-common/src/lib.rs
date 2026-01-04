@@ -110,9 +110,11 @@ pub enum TwitchEventSource {
         emojis: Option<Vec<String>>,
     },
     Whisper {
+        sender: String,
         message: String,
     },
     Message {
+        sender: String,
         message: String,
     },
 }

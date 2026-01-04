@@ -1,5 +1,5 @@
 <script>
-  import { customRewardsStore } from "$lib/stores";
+  import { customRewardsStore } from "$lib/stores/rewards";
   import { serverConnection } from "$lib/websocket";
   import { info } from "@tauri-apps/plugin-log";
   import * as Card from "$lib/components/ui/card/index.js";
@@ -52,7 +52,9 @@
 {/if}
 
 {#if Object.keys(currentCustomRewards).length === 0}
-  <div class="p-4 dark:bg-gray-800 bg-gray-300 rounded">No custom rewards found.</div>
+  <div class="p-4 dark:bg-gray-800 bg-gray-300 rounded">
+    No custom rewards found.
+  </div>
 {:else}
   <div class="grid gap-6 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 mb-4">
     {#each Object.entries(currentCustomRewards) as [rewardId, reward]}

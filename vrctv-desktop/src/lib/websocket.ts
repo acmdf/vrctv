@@ -1,14 +1,15 @@
 import type { ClientMessage } from "../../../vrctv-common/bindings/ClientMessage";
 import type { ServerMessage } from "../../../vrctv-common/bindings/ServerMessage";
-import { clientStateStore, customRewardsStore, eventLogStore, TaskState, taskStateStore } from "./stores";
+import { clientStateStore } from "./stores/global";
 import toast from "svelte-french-toast";
 import { debug, error, info } from "@tauri-apps/plugin-log";
 import { commands } from "../bindings";
 import { isPermissionGranted, requestPermission, sendNotification } from "@tauri-apps/plugin-notification";
-import { writable } from "svelte/store";
-import { handleTwitchEvent } from "./twitch";
+import { get, writable } from "svelte/store";
 import type WebSocket from "@tauri-apps/plugin-websocket";
 import type { MessageKind } from "@tauri-apps/plugin-websocket";
+import { eventLogStore, TaskState, taskStateStore } from "./stores/debug";
+import { customRewardsStore, rewardHandler } from "./stores/rewards";
 
 export const serverConnection = writable<ServerConnection | null>(null);
 
@@ -79,7 +80,7 @@ class ServerConnection {
             const data = JSON.parse(message.data);
             return data as ServerMessage;
         } catch (e) {
-            console.error("Failed to parse message", e);
+            error(`Failed to parse message: ${e}`);
         }
         return null;
     }
@@ -200,12 +201,21 @@ export function handleMessage(message: MessageKind<"Text", string>) {
         case "twitchEvent":
             info(`Received Twitch event: ${JSON.stringify(parsed)}`);
             // toast.success(`Twitch event: ${JSON.stringify(parsed.event)}`);
-            eventLogStore.update(logs => ([...logs, ...(parsed.type === "twitchEvent" ? [parsed.event] : [])]));
-            handleTwitchEvent(parsed.event);
+
+            eventLogStore.update(logs => ([...logs, parsed.event]));
+            get(rewardHandler).handleEvent(parsed.event);
+
             break;
         case "streamLabsEvent":
             info(`Received StreamLabs event: ${JSON.stringify(parsed)}`);
             // toast.success(`StreamLabs event: ${JSON.stringify(parsed.event_key)}`);
+
+            eventLogStore.update(logs => ([...logs, ...parsed.events]));
+
+            for (const event of parsed.events) {
+                get(rewardHandler).handleEvent(event);
+            }
+
             break;
     }
 }

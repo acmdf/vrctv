@@ -3,7 +3,7 @@ use std::env;
 use axum::extract::ws::Message;
 use log::{error, info};
 use vrctv_common::{
-    ChangeAvatar, CustomRewardResponse, Notify, ServerMessage, TwitchEvent, TwitchEventSource,
+    CustomRewardResponse, Notify, ServerMessage, TwitchEvent, TwitchEventSource,
     TwitchTriggerRequest,
 };
 use reqwest::Error;
@@ -379,26 +379,6 @@ pub async fn handle_event(event: &Event, conn: &ClientConnection) -> Result<(), 
                 }
             };
 
-            if message.from_user_login.as_str() == "acmdf" {
-                if message.whisper.text == "furry_mode" {
-                    let _ = send_all_message(
-                        ServerMessage::ChangeAvatar(ChangeAvatar {
-                            id: "avtr_66069c77-8ecb-439c-9643-cfb1fbfb1363".into(),
-                        }),
-                        conn,
-                    )
-                    .await;
-                } else if message.whisper.text == "normal_mode" {
-                    let _ = send_all_message(
-                        ServerMessage::ChangeAvatar(ChangeAvatar {
-                            id: "avtr_da3a3a4d-4936-4652-aa2b-442650e99f5c".into(),
-                        }),
-                        conn,
-                    )
-                    .await;
-                }
-            }
-
             let _ = send_all_message(
                 ServerMessage::Notify(Notify {
                     title: message.from_user_name.to_string(),
@@ -413,6 +393,7 @@ pub async fn handle_event(event: &Event, conn: &ClientConnection) -> Result<(), 
                     user_id: message.from_user_login.to_string(),
                     user_name: message.from_user_name.to_string(),
                     event: TwitchEventSource::Whisper {
+                        sender: message.from_user_name.to_string(),
                         message: message.whisper.text.to_string(),
                     },
                 }),
@@ -431,31 +412,12 @@ pub async fn handle_event(event: &Event, conn: &ClientConnection) -> Result<(), 
                 }
             };
 
-            if message.chatter_user_name.as_str() == "acmdf" {
-                if message.message.text == "furry_mode" {
-                    let _ = send_all_message(
-                        ServerMessage::ChangeAvatar(ChangeAvatar {
-                            id: "avtr_66069c77-8ecb-439c-9643-cfb1fbfb1363".into(),
-                        }),
-                        conn,
-                    )
-                    .await;
-                } else if message.message.text == "normal_mode" {
-                    let _ = send_all_message(
-                        ServerMessage::ChangeAvatar(ChangeAvatar {
-                            id: "avtr_da3a3a4d-4936-4652-aa2b-442650e99f5c".into(),
-                        }),
-                        conn,
-                    )
-                    .await;
-                }
-            }
-
             send_all_message(
                 ServerMessage::TwitchEvent(TwitchEvent {
                     user_id: message.chatter_user_id.to_string(),
                     user_name: message.chatter_user_name.to_string(),
                     event: TwitchEventSource::Message {
+                        sender: message.chatter_user_name.to_string(),
                         message: message.message.text.to_string(),
                     },
                 }),

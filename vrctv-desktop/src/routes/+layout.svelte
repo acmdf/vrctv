@@ -10,7 +10,7 @@
     import StoreManager from "$lib/components/storeManager.svelte";
     import ConnectionManager from "$lib/components/connectionManager.svelte";
     import { attachConsole, info } from "@tauri-apps/plugin-log";
-    import { overlays, overlayVisibleStore } from "$lib/stores";
+    import { overlays, overlayVisibleStore } from "$lib/stores/overlays";
     import { currentOverlayState } from "$lib/overlays";
     import { ModeWatcher } from "mode-watcher";
     import ThemeSwitcher from "$lib/components/themeSwitcher.svelte";

@@ -1,5 +1,5 @@
 <script>
-  import { clientStateStore } from "$lib/stores";
+  import { clientStateStore } from "$lib/stores/global";
   import { PUBLIC_BACKEND_URL } from "$env/static/public";
   import StatusButton from "$lib/components/statusButton.svelte";
 </script>

@@ -1,181 +1,96 @@
 import { get } from "svelte/store";
-import { currentReward, overlayVisibleStore, avatarRewardQueue, rewardStore, type AvatarReward, type Reward, type RewardStoreState, overlayRewardQueue, type OverlayReward, overlays, currentAvatarRewardTimeout, currentOverlayRewardTimeout, warudoOscSetRewardTimeouts } from "./stores";
-import { commands } from "../bindings";
+import type { RewardContext, RewardInstance } from "./rewards/types";
+import type { KV, TriggerSource } from "./triggers/types";
+import { rewardStore } from "./stores/rewards";
 
-export async function addReward(reward: Reward) {
-    switch (reward.type) {
-        case "avatar": {
-            const queue = get(avatarRewardQueue);
-            avatarRewardQueue.update((q) => [...q, reward]);
+type TaskContext = {
+    kv: KV;
+    source: TriggerSource;
+}
 
-            if (queue.length > 0) {
-                return;
+export class RewardHandler {
+    private activeRewards: [RewardInstance<any>, TaskContext][] = [];
+    private rewardQueue: [RewardInstance<any>, TaskContext][] = [];
+    private globalKV: KV = {};
+
+    constructor() { }
+
+    async handleEvent(event: TriggerSource) {
+        let tasks = get(rewardStore).tasks;
+
+        for (const task of tasks) {
+            if (await task.trigger.evaluate(event)) {
+                const context: RewardContext = {
+                    source: event,
+                    runningRewards: this.activeRewards.map((ar) => ar[0]),
+                    rewardQueue: this.rewardQueue.map((rq) => rq[0]),
+                    trigger_values: {},
+                    global_values: this.globalKV,
+                }
+                const localKV = await task.trigger.getContext(context);
+
+                for (const reward of task.rewards) {
+                    this.rewardQueue.push([reward, { kv: localKV, source: event }]);
+                }
+
+                await this.processQueue();
             }
-
-            handleAvatarReward(reward);
-            break;
         }
-        case "avatarCancel": {
-            await cancelReward(true, null);
-            break;
-        }
-        case "overlay": {
-            let queue = get(overlayRewardQueue)[reward.overlay];
+    }
 
-            if (!queue) {
-                overlayRewardQueue.update((q) => {
-                    q[reward.overlay] = [];
-                    return q;
-                });
-                queue = [];
-            }
+    async cleanseActiveRewards() {
+        const context = {
+            runningRewards: this.activeRewards.map((ar) => ar[0]),
+            rewardQueue: this.rewardQueue.map((rq) => rq[0]),
+            global_values: this.globalKV,
+        };
 
-            overlayRewardQueue.update((q) => {
-                q[reward.overlay] = [...queue, reward];
-                return q;
+        this.activeRewards = await Promise.all(this.activeRewards.filter(async ([reward, taskContext]) => {
+            const stillRunning = await reward.isStillRunning({
+                ...context,
+                trigger_values: taskContext.kv,
+                source: taskContext.source,
             });
+            return stillRunning;
+        }));
+    }
 
-            if (queue.length > 0) {
-                return;
-            }
+    async processQueue() {
+        await this.cleanseActiveRewards();
 
-            handleOverlayReward(reward);
-            break;
-        }
-        case "overlayCancel": {
-            await cancelReward(false, reward.overlay);
-            break;
-        }
-        case "warudoOsc": {
-            const queue = get(warudoOscSetRewardTimeouts);
+        const context = {
+            runningRewards: this.activeRewards.map((ar) => ar[0]),
+            rewardQueue: this.rewardQueue.map((rq) => rq[0]),
+            global_values: this.globalKV,
+        };
 
-            for (const [address, value] of Object.entries(reward.onStart)) {
-                await commands.setWarudoOsc(address, value);
-            }
+        const currentRewardCount = this.activeRewards.length + this.rewardQueue.length;
 
-            for (const address of Object.keys(reward.onStop)) {
-                if (queue[address]) {
-                    clearTimeout(queue[address][0]);
-                    finishWarudoOscSetReward(address);
+        for (let i = 0; i < this.rewardQueue.length;) {
+            const [reward, taskContext] = this.rewardQueue[i];
+
+            let localContext: RewardContext = {
+                ...context,
+                trigger_values: taskContext.kv,
+                source: taskContext.source,
+            };
+
+            if (await reward.readyToStart(localContext)) {
+                await reward.onStart(localContext);
+
+                if (await reward.isStillRunning(localContext)) {
+                    this.activeRewards.push([reward, taskContext]);
                 }
 
-                const timeout = setTimeout(async () => {
-                    finishWarudoOscSetReward(address);
-                });
-
-                queue[address] = [timeout, reward.onStop[address]];
+                this.rewardQueue.splice(i, 1);
+            } else {
+                i++;
             }
-
-            warudoOscSetRewardTimeouts.set(queue);
-            break;
         }
-        case "warudoOscCancel": {
-            const queue = get(warudoOscSetRewardTimeouts);
 
-            for (const address of Object.keys(reward.addresses)) {
-                if (queue[address]) {
-                    clearTimeout(queue[address][0]);
-                    finishWarudoOscSetReward(address);
-                }
-            }
-
-            warudoOscSetRewardTimeouts.set(queue);
-            break;
+        if (this.activeRewards.length + this.rewardQueue.length < currentRewardCount) {
+            // Something changed, re-process the queue
+            await this.processQueue();
         }
     }
-}
-
-async function finishWarudoOscSetReward(address: string) {
-    const queue = get(warudoOscSetRewardTimeouts);
-
-    if (!queue[address]) return;
-
-    const value = queue[address][1];
-    delete queue[address];
-
-    await commands.setWarudoOsc(address, value);
-
-    warudoOscSetRewardTimeouts.set(queue);
-}
-
-export async function cancelReward(avatar: boolean = true, overlay: OverlayReward["overlay"] | null = null) {
-    if (avatar) {
-        const avatarTimeout = get(currentAvatarRewardTimeout);
-        if (avatarTimeout) {
-            clearTimeout(avatarTimeout);
-            finishAvatarReward();
-        }
-    }
-    if (overlay) {
-        const overlayTimeout = get(currentOverlayRewardTimeout);
-
-        if (overlayTimeout[overlay]) {
-            clearTimeout(overlayTimeout[overlay]);
-            finishOverlayReward(
-                overlay
-            );
-        }
-    }
-}
-
-async function finishAvatarReward() {
-    const queue = get(avatarRewardQueue);
-    queue.shift();
-    avatarRewardQueue.set(queue);
-    if (queue.length > 0) {
-        handleAvatarReward(queue[0]);
-    } else {
-        const baseAvatarId = get(rewardStore).baseAvatarId ?? "";
-        await commands.changeAvatar(baseAvatarId);
-        for (const [key, value] of Object.entries(get(rewardStore).baseParams ?? {})) {
-            await commands.setOsc(key, value);
-        }
-        currentReward.set(null);
-    }
-}
-
-async function handleAvatarReward(reward: AvatarReward) {
-    await commands.changeAvatar(reward.setsAvatar ?? get(rewardStore).baseAvatarId ?? "");
-    for (const [key, value] of Object.entries(reward.setParams ?? {})) {
-        await commands.setOsc(key, value);
-    }
-
-    currentReward.set(reward);
-
-    const timeout = setTimeout(finishAvatarReward, reward.timeoutSeconds * 1000);
-    currentAvatarRewardTimeout.set(timeout);
-}
-
-async function finishOverlayReward(overlay: OverlayReward["overlay"]) {
-    const queue = get(overlayRewardQueue)[overlay];
-    queue.shift();
-    overlayRewardQueue.update((q) => {
-        q[overlay] = queue;
-        return q;
-    });
-
-    if (queue.length > 0) {
-        handleOverlayReward(queue[0]);
-    } else {
-        const overlayVisibility = get(overlayVisibleStore);
-        const overlayList = get(overlays);
-        const overlayItem = overlayList.find((o) => o.id === overlay);
-
-        overlayVisibility[overlay] = overlayItem ? overlayItem.visible : false;
-        overlayVisibleStore.set(overlayVisibility);
-    }
-}
-
-async function handleOverlayReward(reward: OverlayReward) {
-    const overlayVisibility = get(overlayVisibleStore);
-    overlayVisibility[reward.overlay] = reward.show;
-    overlayVisibleStore.set(overlayVisibility);
-
-    const timeout = setTimeout(async () => {
-        await finishOverlayReward(reward.overlay);
-    }, reward.timeoutSeconds * 1000);
-
-    const currentTimeouts = get(currentOverlayRewardTimeout);
-    currentTimeouts[reward.overlay] = timeout;
-    currentOverlayRewardTimeout.set(currentTimeouts);
 }

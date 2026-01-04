@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { commands } from "../../bindings";
   import * as Select from "$lib/components/ui/select/index.js";
   import * as InputGroup from "$lib/components/ui/input-group/index.js";
   import { Minus } from "@lucide/svelte";
   import Input from "./ui/input/input.svelte";
+  import { getAvatarOscs } from "$lib/avatar-list-cache";
 
   const {
     avatarId,
@@ -43,30 +43,22 @@
       : placeholder,
   );
 
-  const paramsLoad = $derived(
-    avatarId ? await commands.fetchAvatarOsc(avatarId) : undefined,
-  );
+  const params = $derived(avatarId ? await getAvatarOscs(avatarId) : undefined);
 
   $effect(() => {
-    if (!avatarId || !paramsLoad) return;
+    if (!avatarId || !params) return;
 
-    if (
-      param &&
-      paramsLoad.status === "ok" &&
-      !paramsLoad.data.includes(param.replace("/avatar/parameters/", ""))
-    ) {
+    if (param && !params.includes(param.replace("/avatar/parameters/", ""))) {
       onChange(null, value || "");
     }
   });
 </script>
 
-{#if paramsLoad && paramsLoad.status !== "ok"}
-  <p class="text-red-500 p-2">Error: {paramsLoad.error}</p>
-{:else if paramsLoad && paramsLoad.data.length <= 0}
+{#if params && params.length <= 0}
   <p class="text-yellow-500 p-2">No parameters found for this avatar.</p>
 {:else}
-  <div class="flex flex-row items-center p-2 space-x-2">
-    {#if paramsLoad}
+  <div class="flex flex-row items-center space-x-2">
+    {#if params}
       <Select.Root
         type="single"
         bind:value={
@@ -84,7 +76,7 @@
           {triggerText}
         </Select.Trigger>
         <Select.Content>
-          {#each removeUselessParams(paramsLoad.data) as p}
+          {#each removeUselessParams(params) as p}
             <Select.Item value={`/avatar/parameters/${p}`}>
               {p}
             </Select.Item>

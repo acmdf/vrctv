@@ -21,6 +21,7 @@
     "@tauri-apps/plugin-notification": "~2.3.1",
     "@tauri-apps/plugin-opener": "^2",
     "@tauri-apps/plugin-websocket": "~2.4.0",
+    "devalue": "^5.6.1",
     "mode-watcher": "^1.1.0",
     "svelte-french-toast": "^1.2.0",
     "svelte-persisted-store": "^0.12.0",
