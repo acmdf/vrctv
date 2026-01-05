@@ -1,17 +1,23 @@
 <script lang="ts">
   import { commands } from "../../bindings";
-  import {
-    oscStateStore,
-    clientStateStore,
-  } from "$lib/stores/global";
+  import { oscStateStore, clientStateStore } from "$lib/stores/global";
   import type { PageProps } from "./$types";
-  import { warn } from "@tauri-apps/plugin-log";
+  import { debug, warn } from "@tauri-apps/plugin-log";
   import { sendNotif, serverConnection } from "$lib/websocket";
   import toast from "svelte-french-toast";
   import Input from "$lib/components/ui/input/input.svelte";
   import Button from "$lib/components/ui/button/button.svelte";
-  import { eventLogStore, serviceStateStore, taskStateStore } from "$lib/stores/debug";
-    import { customRewardsStore, defaultRewardStore, rewardStore } from "$lib/stores/rewards";
+  import {
+    eventLogStore,
+    serviceStateStore,
+    taskStateStore,
+  } from "$lib/stores/debug";
+  import {
+    customRewardsStore,
+    defaultRewardStore,
+    rewardHandler,
+    rewardStore,
+  } from "$lib/stores/rewards";
 
   const { data }: PageProps = $props();
 
@@ -138,63 +144,27 @@
   Set Warudo Parameter
 </Button>
 
-<h2 class="text-2xl font-bold mb-2">Client Info</h2>
-<div class="mb-4">
-  {#each Object.entries($clientStateStore) as [key, value]}
-    <div class="flex p-2 items-center">
-      <p class="text-md bg-gray-800 rounded p-2 mr-2">{key}</p>
-      {formatValue(value)}
-    </div>
-  {/each}
-</div>
-<h2 class="text-2xl font-bold mb-2">Task Info</h2>
-<div class="mb-4">
-  {#each Object.entries($taskStateStore) as [key, value]}
-    <div class="flex p-2 items-center">
-      <p class="text-md bg-gray-800 rounded p-2 mr-2">{key}</p>
-      {formatValue(value)}
-    </div>
-  {/each}
-</div>
-<h2 class="text-2xl font-bold mb-2">Reward Store</h2>
-<div class="mb-4">
-  {#each Object.entries($rewardStore) as [key, value]}
-    <div class="flex p-2 items-center">
-      <p class="text-md bg-gray-800 rounded p-2 mr-2">{key}</p>
-      {formatValue(value)}
-    </div>
-  {/each}
-</div>
+{#snippet debugTable(title: string, data: Record<string, any>)}
+  <h2 class="text-2xl font-bold mb-2">{title}</h2>
+  <div class="mb-4">
+    {#each Object.entries(data) as [key, value]}
+      <div class="flex p-2 items-center">
+        <p class="text-md bg-gray-800 rounded p-2 mr-2">{key}</p>
+        {formatValue(value)}
+      </div>
+    {/each}
+  </div>
+{/snippet}
 
-<h2 class="text-2xl font-bold mb-2">Custom Rewards</h2>
-<div class="mb-4">
-  {#each Object.entries($customRewardsStore) as [key, value]}
-    <div class="flex p-2 items-center">
-      <p class="text-md bg-gray-800 rounded p-2 mr-2">{key}</p>
-      {formatValue(value)}
-    </div>
-  {/each}
-</div>
-
-<h2 class="text-2xl font-bold mb-2">Event Log</h2>
-<div class="mb-4 max-h-64 overflow-y-auto">
-  {#each $eventLogStore as event, index (index)}
-    <div class="flex p-2 items-center border-b border-gray-700">
-      <p class="text-md bg-gray-800 rounded p-2 mr-2">{index + 1}</p>
-      {formatValue(event)}
-    </div>
-  {/each}
-</div>
-
-<h2 class="text-2xl font-bold mb-2">OSC State</h2>
-<div class="mb-4">
-  {#each Object.entries($oscStateStore) as [address, value]}
-    <div class="flex p-2 items-center">
-      <p class="text-md bg-gray-800 rounded p-2 mr-2">{address}</p>
-      {formatValue(value)}
-    </div>
-  {/each}
-</div>
+{@render debugTable("Client Info", $clientStateStore)}
+{@render debugTable("Task Info", $taskStateStore)}
+{@render debugTable("Reward Store", $rewardStore)}
+{@render debugTable("Custom Rewards", $customRewardsStore)}
+{@render debugTable("Event Log", $eventLogStore)}
+{@render debugTable("OSC State", $oscStateStore)}
+{@render debugTable("Active Rewards", $rewardHandler.activeRewards)}
+{@render debugTable("Reward Queue", $rewardHandler.rewardQueue)}
+{@render debugTable("Global KV", $rewardHandler.globalKV)}
 
 <h2 class="text-2xl font-bold mt-4 mb-2">Service Status</h2>
 {#each Object.entries($serviceStateStore) as [service, status]}

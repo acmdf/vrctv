@@ -4,7 +4,7 @@ import { commands } from "../../bindings";
 import { CancellableReward, type RewardContext } from "./types";
 import { oscStateStore } from "$lib/stores/global";
 import { info } from "@tauri-apps/plugin-log";
-import { rewardStore } from "$lib/stores/rewards";
+import { rewardStore, updateContext } from "$lib/stores/rewards";
 
 export type SetAvatarRewardParams = {
     avatar_id: string;
@@ -68,9 +68,9 @@ export class SetAvatarReward extends CancellableReward<SetAvatarRewardParams> {
                 this.params.return_avatar_id = this.caughtPreviousAvatarId;
                 this.caughtPreviousAvatarId = null;
             } else { // We are starting immediately, so get the current avatar ID from OSC
-                const currentAvatarId = get(oscStateStore)["/avatar/id"];
+                const currentAvatarId = get(oscStateStore)["/avatar/change"];
 
-                if ("String" in currentAvatarId) {
+                if (currentAvatarId && "String" in currentAvatarId) {
                     this.params.return_avatar_id = currentAvatarId.String;
                 } else {
                     info("SetAvatarReward: No current avatar ID found in OSC state store.");
@@ -83,7 +83,7 @@ export class SetAvatarReward extends CancellableReward<SetAvatarRewardParams> {
 
         await commands.changeAvatar(this.params.avatar_id);
         if (this.params.timeout_ms > 0) {
-            this.finishTimeout = setTimeout(() => this.onCancel(context), this.params.timeout_ms);
+            this.finishTimeout = setTimeout(() => this.onCancel(updateContext(context)), this.params.timeout_ms);
         }
     }
 

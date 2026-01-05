@@ -3,7 +3,7 @@ import { commands, type Result } from "../../bindings";
 import { CancellableReward, type RewardContext } from "./types";
 import { oscStateStore } from "$lib/stores/global";
 import { info } from "@tauri-apps/plugin-log";
-import { rewardStore } from "$lib/stores/rewards";
+import { rewardStore, updateContext } from "$lib/stores/rewards";
 import type { KV } from "$lib/triggers/types";
 
 export type SetOSCRewardParams = {
@@ -48,9 +48,9 @@ export class SetOSCReward extends CancellableReward<SetOSCRewardParams> {
     }
 
     currentAvatarId(): string {
-        const currentAvatarId = get(oscStateStore)["/avatar/id"];
+        const currentAvatarId = get(oscStateStore)["/avatar/change"];
 
-        if ("String" in currentAvatarId) {
+        if (currentAvatarId && "String" in currentAvatarId) {
             return currentAvatarId.String;
         } else {
             return "";
@@ -127,7 +127,7 @@ export class SetOSCReward extends CancellableReward<SetOSCRewardParams> {
 
         await this.setParams(this.params.params);
         if (this.params.timeout_ms > 0) {
-            this.finishTimeout = setTimeout(() => this.onCancel(context), this.params.timeout_ms);
+            this.finishTimeout = setTimeout(() => this.onCancel(updateContext(context)), this.params.timeout_ms);
         }
     }
 

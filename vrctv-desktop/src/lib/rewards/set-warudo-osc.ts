@@ -1,6 +1,8 @@
 import { commands, type Result } from "../../bindings";
 import { CancellableReward, type RewardContext } from "./types";
 import type { KV } from "$lib/triggers/types";
+import { debug, info } from "@tauri-apps/plugin-log";
+import { updateContext } from "$lib/stores/rewards";
 
 export type SetWarudoOscRewardParams = {
     params: KV;
@@ -40,6 +42,8 @@ export class SetWarudoOscReward extends CancellableReward<SetWarudoOscRewardPara
     }
 
     setParams(params: KV): Promise<Result<null, string>[]> {
+        info(`Setting Warudo OSC params: ${JSON.stringify(params)}`);
+
         const promises: Promise<Result<null, string>>[] = [];
 
         for (const [key, value] of Object.entries(params)) {
@@ -53,7 +57,7 @@ export class SetWarudoOscReward extends CancellableReward<SetWarudoOscRewardPara
         await this.setParams(this.params.params);
 
         if (this.params.timeout_ms > 0) {
-            this.finishTimeout = setTimeout(() => this.onCancel(context), this.params.timeout_ms);
+            this.finishTimeout = setTimeout(() => this.onCancel(updateContext(context)), this.params.timeout_ms);
         }
     }
 
@@ -67,7 +71,27 @@ export class SetWarudoOscReward extends CancellableReward<SetWarudoOscRewardPara
             this.finishTimeout = null;
         }
 
-        await this.setParams(this.params.return_params);
+        // Check for queued rewards that will overwrite return params
+        let fictionalContext: RewardContext = {
+            runningRewards: context.runningRewards.filter((r) => r !== this),
+            rewardQueue: context.rewardQueue,
+            global_values: context.global_values,
+            trigger_values: {},
+            source: context.source
+        };
+
+        const queuedRewards = context.rewardQueue.filter((r) => r instanceof SetWarudoOscReward).filter((r) => r.readyToStart(fictionalContext));
+        let nonCollidingReturnParams: KV = {};
+
+        for (const [key, value] of Object.entries(this.params.return_params)) {
+            if (!queuedRewards.find((r) => Object.keys(r.params.params).includes(key))) {
+                nonCollidingReturnParams[key] = value;
+            } else {
+                debug(`Not returning param ${key} for reward ${this.reward.id} as it will be overwritten by a queued reward.`);
+            }
+        }
+
+        await this.setParams(nonCollidingReturnParams);
 
         this.finishCallback?.();
     }

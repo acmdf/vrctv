@@ -85,7 +85,13 @@ pub fn run() {
         .plugin(tauri_plugin_notification::init())
         .plugin(
             tauri_plugin_log::Builder::new()
-                .level(LevelFilter::Info)
+                .level(
+                    if cfg!(debug_assertions) {
+                        LevelFilter::Debug
+                    } else {
+                        LevelFilter::Info
+                    },
+                )
                 .level_for("vrchat_osc::mdns::task", LevelFilter::Warn)
                 .level_for("tauri_runtime_wry", LevelFilter::Off)
                 .target(tauri_plugin_log::Target::new(

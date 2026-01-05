@@ -1,4 +1,4 @@
-import { writable, type Writable } from "svelte/store";
+import { get, writable, type Writable } from "svelte/store";
 import { persisted } from "svelte-persisted-store";
 import { SetAvatarReward } from "$lib/rewards/set-avatar";
 import { StreamlabsDonationTrigger } from "$lib/triggers/streamlabs-donation";
@@ -8,7 +8,7 @@ import { TwitchChannelPointsTrigger } from "$lib/triggers/twitch-channel-points"
 import { parse, stringify } from "devalue";
 import { restoreReward, restoreTrigger } from "$lib/task-parts";
 import { TriggerInstance } from "$lib/triggers/types";
-import { RewardInstance } from "$lib/rewards/types";
+import { RewardInstance, type RewardContext } from "$lib/rewards/types";
 import type { CustomRewardResponse } from "../../../../vrctv-common/bindings/CustomRewardResponse";
 import { RewardHandler } from "$lib/rewardHandler";
 
@@ -97,3 +97,12 @@ export const rewardStore: Writable<RewardStoreState> = persisted(
 );
 export const customRewardsStore: Writable<CustomRewardResponse[]> = writable([]);
 export const rewardHandler: Writable<RewardHandler> = writable(new RewardHandler());
+
+export function updateContext(context: RewardContext): RewardContext {
+    return {
+        ...context,
+        runningRewards: get(rewardHandler).activeRewards.map((ar) => ar[0]),
+        rewardQueue: get(rewardHandler).rewardQueue.map((rq) => rq[0]),
+        global_values: get(rewardHandler).globalKV,
+    };
+}

@@ -1,6 +1,7 @@
 import { get } from "svelte/store";
 import { CancellableReward, type RewardContext } from "./types";
 import { overlays, overlayVisibleStore } from "$lib/stores/overlays";
+import { updateContext } from "$lib/stores/rewards";
 
 export type SetOverlayRewardParams = {
     overlay_id: number;
@@ -48,7 +49,7 @@ export class SetOverlayReward extends CancellableReward<SetOverlayRewardParams> 
         overlayVisibleStore.set(overlayVisibility);
 
         if (this.params.timeout_ms > 0) {
-            this.finishTimeout = setTimeout(() => this.onCancel(context), this.params.timeout_ms);
+            this.finishTimeout = setTimeout(() => this.onCancel(updateContext(context)), this.params.timeout_ms);
         }
     }
 
