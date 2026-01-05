@@ -3,6 +3,7 @@
     import * as Select from "$lib/components/ui/select";
     import type { RewardInstance } from "$lib/rewards/types";
     import { rewards } from "$lib/task-parts";
+    import QueueCollapse from "./modifiable-queue/queue-collapse.svelte";
 
     let {
         reward = $bindable(),
@@ -14,7 +15,9 @@
 </script>
 
 <div class="grid items-center gap-1.5">
-    <Label>Type</Label>
+    <QueueCollapse>
+        <Label>Type</Label>
+    </QueueCollapse>
     <Select.Root
         bind:value={
             () => reward.reward.id,
@@ -47,6 +50,8 @@
     </Select.Root>
 
     {#if EditorComponent}
-        <EditorComponent bind:reward />
+        <QueueCollapse>
+            <EditorComponent bind:reward />
+        </QueueCollapse>
     {/if}
 </div>

@@ -3,6 +3,7 @@
     import * as Select from "$lib/components/ui/select";
     import { triggers } from "$lib/task-parts";
     import { TriggerInstance } from "$lib/triggers/types";
+    import QueueCollapse from "./modifiable-queue/queue-collapse.svelte";
 
     let {
         trigger = $bindable(),
@@ -13,8 +14,10 @@
     const EditorComponent = $derived(triggers[trigger.trigger.id]?.editor);
 </script>
 
-<div class="grid items-center gap-1.5">
-    <Label>Type</Label>
+<div class="grid items-center gap-2 mb-2">
+    <QueueCollapse>
+        <Label>Type</Label>
+    </QueueCollapse>
     <Select.Root
         bind:value={
             () => trigger.trigger.id,
@@ -26,7 +29,7 @@
         }
         type="single"
     >
-        <Select.Trigger class="mb-4 w-full max-w-lg"
+        <Select.Trigger class="w-full max-w-lg"
             >{trigger.trigger.title}</Select.Trigger
         >
         <Select.Content align="start">
@@ -47,6 +50,8 @@
     </Select.Root>
 
     {#if EditorComponent}
-        <EditorComponent bind:trigger />
+        <QueueCollapse>
+            <EditorComponent bind:trigger />
+        </QueueCollapse>
     {/if}
 </div>

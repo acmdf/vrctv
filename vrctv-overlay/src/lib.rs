@@ -1,13 +1,10 @@
 use std::time::Duration;
 
 use axum::{
-    Extension, Router,
-    extract::{
+    Extension, Router, extract::{
         Path, State, WebSocketUpgrade,
         ws::{Message, WebSocket},
-    },
-    response::{Html, IntoResponse},
-    routing::{any, get},
+    }, http::StatusCode, response::{Html, IntoResponse}, routing::{any, get}
 };
 use log::{error, info};
 use serde::{Deserialize, Serialize};
@@ -115,7 +112,7 @@ fn app(tx: broadcast::Sender<ServerCommand>, app_state: AppState) -> Router {
             TraceLayer::new_for_http(),
             // Graceful shutdown will wait for outstanding requests to complete. Add a timeout so
             // requests don't hang forever.
-            TimeoutLayer::new(Duration::from_secs(10)),
+            TimeoutLayer::with_status_code(StatusCode::REQUEST_TIMEOUT, Duration::from_secs(10)),
         ))
         .layer(Extension(tx))
         .with_state(app_state)

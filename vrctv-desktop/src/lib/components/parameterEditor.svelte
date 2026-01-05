@@ -43,7 +43,9 @@
       : placeholder,
   );
 
-  const params = $derived(avatarId ? await getAvatarOscs(avatarId) : undefined);
+  const params = $derived(
+    avatarId ? await getAvatarOscs(avatarId) : undefined,
+  );
 
   $effect(() => {
     if (!avatarId || !params) return;
@@ -69,9 +71,7 @@
         }
       >
         <Select.Trigger
-          class={placeholder
-            ? "text-muted-foreground xl:min-w-sm"
-            : "xl:min-w-sm"}
+          class={placeholder ? "text-muted-foreground flex-2" : "flex-2"}
         >
           {triggerText}
         </Select.Trigger>
@@ -91,16 +91,15 @@
             onChange(selectedParam, value || "");
           }
         }
-        class="xl:min-w-sm"
+        class="flex-2"
         placeholder={triggerText}
       />
     {/if}
     {#if value !== undefined}
-      <InputGroup.Root>
+      <InputGroup.Root class="flex-1">
         <InputGroup.Input
           type="text"
           {value}
-          class="ml-2"
           onchange={(e) => {
             onChange(param, (e.currentTarget as HTMLInputElement).value);
           }}
@@ -112,7 +111,7 @@
     {/if}
     {#if !placeholder}
       <Minus
-        class="text-red-500 cursor-pointer h-4"
+        class="text-red-500 cursor-pointer h-4 w-4"
         size="64"
         strokeWidth={8}
         onclick={() => {

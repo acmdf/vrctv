@@ -41,36 +41,34 @@
     }
 </script>
 
-<div class="grid items-center max-w-lg">
-    <div class="grid items-center gap-1.5 mb-2">
-        <Label>Overlay</Label>
-        <Select.Root
-            bind:value={
-                () =>
-                    reward.params.overlay_id
-                        ? reward.params.overlay_id.toString()
-                        : "",
-                (v) => {
-                    if (v === "") {
-                        updateParams("overlay_id", undefined);
-                    } else {
-                        updateParams("overlay_id", parseInt(v));
-                    }
+<div class="grid items-center gap-1.5 mb-2">
+    <Label>Overlay</Label>
+    <Select.Root
+        bind:value={
+            () =>
+                reward.params.overlay_id
+                    ? reward.params.overlay_id.toString()
+                    : "",
+            (v) => {
+                if (v === "") {
+                    updateParams("overlay_id", undefined);
+                } else {
+                    updateParams("overlay_id", parseInt(v));
                 }
             }
-            type="single"
-        >
-            <Select.Trigger class="w-full">
-                {overlayName(reward.params.overlay_id)}
-            </Select.Trigger>
-            <Select.Content align="start">
-                <Select.Item value="">None (Cancel all overlays)</Select.Item>
-                {#each $overlays as overlay}
-                    <Select.Item value={overlay.id.toString()}>
-                        {overlay.name} (ID: {overlay.id})
-                    </Select.Item>
-                {/each}
-            </Select.Content>
-        </Select.Root>
-    </div>
+        }
+        type="single"
+    >
+        <Select.Trigger class="w-full">
+            {overlayName(reward.params.overlay_id)}
+        </Select.Trigger>
+        <Select.Content align="start">
+            <Select.Item value="">None (Cancel all overlays)</Select.Item>
+            {#each $overlays as overlay}
+                <Select.Item value={overlay.id.toString()}>
+                    {overlay.name} (ID: {overlay.id})
+                </Select.Item>
+            {/each}
+        </Select.Content>
+    </Select.Root>
 </div>

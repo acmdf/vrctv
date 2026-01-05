@@ -4,7 +4,7 @@
     import type { TriggerInstance } from "$lib/triggers/types";
     import TriggerEditor from "../trigger-editor.svelte";
     import * as Select from "$lib/components/ui/select";
-    import { Trash } from "@lucide/svelte";
+    import * as Queue from "$lib/components/modifiable-queue/index";
     import { OrTrigger, type OrTriggerParams } from "$lib/triggers/or";
 
     let {
@@ -22,36 +22,33 @@
     let params: AndTriggerParams | OrTriggerParams = $derived(trigger.params);
 </script>
 
-<div class="grid">
+<Queue.Root>
     {#each trigger.params.subtriggers as subtrigger, i}
-        <div class="flex flex-row items-center gap-1 mt-2">
-            <button
-                class="m-1 bg-accent rounded hover:bg-accent/80 h-full p-1"
-                onclick={() => {
+        <Queue.Item>
+            <TriggerEditor
+                bind:trigger={
+                    () => trigger.params.subtriggers[i],
+                    (s) => {
+                        params.subtriggers[i] = s;
+                        trigger.params = params;
+                        trigger = trigger;
+                    }
+                }
+            />
+            <Queue.Controls
+                ondelete={() => {
                     params.subtriggers.splice(i, 1);
                     trigger = trigger;
                 }}
-            >
-                <Trash class="text-red-500" />
-            </button>
-            <div class="flex flex-col h-full items-center w-2">
-                <div
-                    class="border border-l border-muted-foreground/50 h-full min-h-4"
-                ></div>
-            </div>
-            <div class="pb-4 pt-2 flex flex-row">
-                <TriggerEditor
-                    bind:trigger={
-                        () => trigger.params.subtriggers[i],
-                        (s) => {
-                            params.subtriggers[i] = s;
-                            trigger.params = params;
-                            trigger = trigger;
-                        }
-                    }
-                />
-            </div>
-        </div>
+                onduplicate={() => {
+                    const ctor =
+                        subtrigger.constructor as typeof TriggerInstance;
+                    const copy = new ctor(structuredClone(subtrigger.params));
+                    params.subtriggers.splice(i + 1, 0, copy);
+                    trigger = trigger;
+                }}
+            />
+        </Queue.Item>
     {/each}
 
     <Select.Root
@@ -89,4 +86,4 @@
             {/each}
         </Select.Content>
     </Select.Root>
-</div>
+</Queue.Root>

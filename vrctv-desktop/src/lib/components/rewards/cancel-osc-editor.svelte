@@ -31,15 +31,12 @@
     }
 </script>
 
-<div class="grid items-center max-w-lg">
-    <div class="grid items-center gap-1.5 mb-2">
-        <Label>Channel</Label>
-        <Input
-            bind:value={
-                () => reward.params.channel_id,
-                (c) => updateParams("channel_id", c)
-            }
-            placeholder="Channel ID"
-        />
-    </div>
+<div class="grid items-center gap-1.5 mb-2">
+    <Label>Channel</Label>
+    <Input
+        bind:value={
+            () => reward.params.channel_id, (c) => updateParams("channel_id", c)
+        }
+        placeholder="Channel ID"
+    />
 </div>

@@ -38,22 +38,20 @@
     }
 </script>
 
-<div class="grid items-center max-w-lg">
-    <div class="grid items-center gap-1.5 mb-2">
-        <Label>Timeout</Label>
-        <InputGroup.Root class="w-full max-w-lg">
-            <InputGroup.Input
-                type="number"
-                bind:value={
-                    () => rewardParams.timeout_ms / 1000,
-                    (v) => updateParams("timeout_ms", v * 1000)
-                }
-            />
-            <InputGroup.Addon align="inline-end">
-                <InputGroup.Text>seconds</InputGroup.Text>
-            </InputGroup.Addon>
-        </InputGroup.Root>
-    </div>
+<div class="grid items-center gap-1.5 mb-2">
+    <Label>Timeout</Label>
+    <InputGroup.Root class="w-full max-w-lg">
+        <InputGroup.Input
+            type="number"
+            bind:value={
+                () => rewardParams.timeout_ms / 1000,
+                (v) => updateParams("timeout_ms", v * 1000)
+            }
+        />
+        <InputGroup.Addon align="inline-end">
+            <InputGroup.Text>seconds</InputGroup.Text>
+        </InputGroup.Addon>
+    </InputGroup.Root>
 </div>
 <div class="grid items-center gap-1.5">
     <Label>Overlay</Label>

@@ -13,6 +13,7 @@ use axum::{
 use axum_extra::{TypedHeader, headers};
 use listenfd::ListenFd;
 use log::{debug, info};
+use reqwest::StatusCode;
 use tokio::{
     net::TcpListener,
     signal,
@@ -182,7 +183,7 @@ fn app() -> Router {
             TraceLayer::new_for_http(),
             // Graceful shutdown will wait for outstanding requests to complete. Add a timeout so
             // requests don't hang forever.
-            TimeoutLayer::new(Duration::from_secs(10)),
+            TimeoutLayer::with_status_code(StatusCode::REQUEST_TIMEOUT, Duration::from_secs(10)),
             db,
         ))
         .layer(Extension(http_client))

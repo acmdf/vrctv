@@ -24,7 +24,7 @@
   {#if label}
     <Label>{label}</Label>
   {/if}
-  <div class="flex flex-row items-center mb-4">
+  <div class="flex flex-row items-center">
     <Select.Root bind:value={avatarId} type="single">
       <Select.Trigger>
         {lookupAvatarText(avatarId)}

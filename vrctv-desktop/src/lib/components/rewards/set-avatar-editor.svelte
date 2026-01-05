@@ -8,6 +8,7 @@
     } from "$lib/rewards/set-avatar";
     import type { RewardInstance } from "$lib/rewards/types";
     import AvatarSelector from "../avatarSelector.svelte";
+    import Label from "../ui/label/label.svelte";
 
     let {
         reward = $bindable(),
@@ -33,8 +34,8 @@
     }
 </script>
 
-<div class="grid grid-cols-2 gap-2">
-    Timeout
+<div class="grid items-center gap-1.5 mb-2">
+    <Label>Timeout</Label>
     <InputGroup.Root class="w-full max-w-lg">
         <InputGroup.Input
             type="number"
@@ -47,7 +48,9 @@
             <InputGroup.Text>seconds</InputGroup.Text>
         </InputGroup.Addon>
     </InputGroup.Root>
-    Avatar
+</div>
+<div class="grid items-center gap-1.5 mb-2">
+    <Label>Set Avatar</Label>
     <AvatarSelector
         bind:avatarId={
             () => reward.params.avatar_id,
@@ -57,7 +60,9 @@
         }
         avatars={$cachedAvatarStore}
     />
-    Return to
+</div>
+<div class="grid items-center gap-1.5">
+    <Label>Return to</Label>
     <Tabs.Root
         bind:value={
             () => reward.params.return_to,

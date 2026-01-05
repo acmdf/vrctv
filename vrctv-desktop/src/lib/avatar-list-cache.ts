@@ -43,16 +43,16 @@ export async function getAvatarOscs(avatarId: string): Promise<string[]> {
         return cache[avatarId]; // Return cached value
     }
 
-    lastFetchTimes[avatarId] = now;
-    avatarOscLastFetchTime.set(lastFetchTimes);
     const response = await commands.fetchAvatarOsc(avatarId);
 
     if (response.status === "error") {
         toast.error("Failed to fetch avatar OSCs: " + response.error);
         return [];
     }
-    cache[avatarId] = response.data;
 
+    cache[avatarId] = response.data;
+    lastFetchTimes[avatarId] = now;
+    avatarOscLastFetchTime.set(lastFetchTimes);
     avatarOscCache.set(cache);
 
     return response.data;
