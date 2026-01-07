@@ -10,6 +10,7 @@ import type WebSocket from "@tauri-apps/plugin-websocket";
 import type { MessageKind } from "@tauri-apps/plugin-websocket";
 import { eventLogStore, TaskState, taskStateStore } from "./stores/debug";
 import { customRewardsStore, rewardHandler } from "./stores/rewards";
+import { getVersion } from "@tauri-apps/api/app";
 
 export const serverConnection = writable<ServerConnection | null>(null);
 
@@ -86,18 +87,21 @@ class ServerConnection {
     }
 }
 
-export function onConnect(i: WebSocket, retryMethod: () => void): ServerConnection {
+export async function onConnect(i: WebSocket, retryMethod: () => void): Promise<ServerConnection> {
     const conn = new ServerConnection(i, retryMethod);
     serverConnection.set(conn);
     conn.connected = true;
     const stateToken = localStorage.getItem("stateToken");
     info(`WebSocket connection established with state token: ${stateToken}`);
 
+    let version = await getVersion();
+    info(`Client version: ${version}`);
+
     if (stateToken) {
         clientStateStore.update(state => ({ ...state, id: stateToken }));
-        conn.send({ type: "connect", state_token: stateToken });
+        conn.send({ type: "connect", state_token: stateToken, client_version: version });
     } else {
-        conn.send({ type: "codeRequest" } as ClientMessage);
+        conn.send({ type: "codeRequest", client_version: version } as ClientMessage);
     }
 
     return conn;

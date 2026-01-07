@@ -24,7 +24,7 @@
         }
         clientStateStore.update((s) => ({ ...s, connected: true }));
         info(`WebSocket created: ${JSON.stringify(ws)}`);
-        const conn = onConnect(ws, restartWebsocket);
+        const conn = await onConnect(ws, restartWebsocket);
 
         const cancel = ws.addListener((message) => {
             switch (message.type) {

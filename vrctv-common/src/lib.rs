@@ -6,11 +6,16 @@ use ts_rs::TS;
 pub struct ConnectRequest {
     /// The random code given to the client to identify itself
     pub state_token: String,
+    /// The version of the client, used for the version check
+    pub client_version: Option<String>,
 }
 
 #[derive(TS, Serialize, Deserialize, Clone, Debug)]
 #[ts(export)]
-pub struct CodeRequest {}
+pub struct CodeRequest {
+    /// The version of the client, used for the version check
+    pub client_version: Option<String>,
+}
 
 #[derive(TS, Serialize, Deserialize, Clone, Debug)]
 #[ts(export)]

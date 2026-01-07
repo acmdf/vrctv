@@ -24,6 +24,8 @@ TWITCH_SECRET=mytwitchsecret
 
 PUBLIC_WEBSOCKET_URL=wss://example.com/ws
 PUBLIC_BACKEND_URL=https://example.com/
+
+CLIENT_VERSION=0.2.0
 ```
 
 # Building
@@ -38,13 +40,14 @@ To install the dependencies, run `pnpm i`
 
 ## Backend server
 
-- To run the app during development, run `just dev`
+- To run the app during development, run `systemfd --no-pid -s http::3000 -- cargo watch --ignore '*.sqlite' -x "run -p vrctv-server"`
 - To build a production version, use a standard rust build `cargo build --release -p vrctv-server`
 
 # In future
 
+- Audio rewards
 - Testing is non-existent
-- Overlay UI could be improved
+- Polling maybe
 - Anything your heart desires
 
 # Contributing

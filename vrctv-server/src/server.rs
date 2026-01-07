@@ -3,10 +3,6 @@ use std::{env, net::SocketAddr, sync::Arc};
 use axum::extract::ws::{Message, WebSocket};
 use futures_util::{SinkExt, StreamExt};
 use log::{debug, error, info};
-use vrctv_common::{
-    ClientMessage, ConnectRequest, ConnectResponse, ErrorMessage, ServerMessage, StreamLabsEvent,
-    StreamLabsEvents, TaskResponse,
-};
 use rust_socketio::Payload as SocketioPayload;
 use serde_json::Value;
 use tokio::sync::{
@@ -16,6 +12,10 @@ use tokio::sync::{
 use twitch_api::{
     HelixClient, TWITCH_EVENTSUB_WEBSOCKET_URL,
     twitch_oauth2::{self, AccessToken, ClientId, ClientSecret, RefreshToken},
+};
+use vrctv_common::{
+    ClientMessage, CodeRequest, ConnectRequest, ConnectResponse, ErrorMessage, ServerMessage,
+    StreamLabsEvent, StreamLabsEvents, TaskResponse,
 };
 
 use crate::{
@@ -432,7 +432,7 @@ pub async fn handle_message(
                 .map_err(|e| format!("Database connection error: {}", e))?;
 
             match client_msg {
-                ClientMessage::CodeRequest(_) => {
+                ClientMessage::CodeRequest(CodeRequest { client_version }) => {
                     // Wait for rate limiter
                     let _ = app_state.rate_limiter.new_user.lock().await;
 
@@ -450,8 +450,37 @@ pub async fn handle_message(
                         .await
                         .map_err(|e| e.to_string())?;
                     info!("Sent state token to client: {}", state_token);
+
+                    if let Some(client_version) = client_version {
+                        // Check client version
+                        let expected_version =
+                            env::var("CLIENT_VERSION").unwrap_or_else(|_| "0.1.0".to_string());
+                        if client_version != expected_version {
+                            info!(
+                                "Client version mismatch: expected {}, got {}",
+                                expected_version, client_version
+                            );
+                            let warning_message = ServerMessage::Notify(vrctv_common::Notify {
+                                title: "Version Mismatch".into(),
+                                message: format!(
+                                    "Your client version ({}) does not match the expected version ({}). Please update your client for the best experience.",
+                                    client_version, expected_version
+                                ),
+                            });
+                            send_message(warning_message, tx).await?;
+                        }
+                    } else {
+                        let warning_message = ServerMessage::Notify(vrctv_common::Notify {
+                            title: "Version Unknown".into(),
+                            message: "Your client did not send a version. Please ensure you are using the latest version for the best experience.".into(),
+                        });
+                        send_message(warning_message, tx).await?;
+                    }
                 }
-                ClientMessage::Connect(ConnectRequest { state_token }) => {
+                ClientMessage::Connect(ConnectRequest {
+                    state_token,
+                    client_version,
+                }) => {
                     context.state_token = Some(state_token.clone());
 
                     // Register the connection if it doesn't already exist
@@ -571,6 +600,33 @@ pub async fn handle_message(
                     tx.send(Message::Text(response_text.into()))
                         .await
                         .map_err(|e| e.to_string())?;
+
+                    if let Some(client_version) = client_version {
+                        // Check client version
+                        let expected_version =
+                            env::var("CLIENT_VERSION").unwrap_or_else(|_| "0.1.0".to_string());
+
+                        if client_version != expected_version {
+                            info!(
+                                "Client version mismatch: expected {}, got {}",
+                                expected_version, client_version
+                            );
+                            let warning_message = ServerMessage::Notify(vrctv_common::Notify {
+                                title: "Version Mismatch".into(),
+                                message: format!(
+                                    "Your client version ({}) does not match the expected version ({}). Please update your client for the best experience.",
+                                    client_version, expected_version
+                                ),
+                            });
+                            send_message(warning_message, tx).await?;
+                        }
+                    } else {
+                        let warning_message = ServerMessage::Notify(vrctv_common::Notify {
+                            title: "Version Unknown".into(),
+                            message: "Your client did not send a version. Please ensure you are using the latest version for the best experience.".into(),
+                        });
+                        send_message(warning_message, tx).await?;
+                    }
                 }
                 ClientMessage::TwitchTrigger(trigger_request) => {
                     if context.twitch.is_none() {
