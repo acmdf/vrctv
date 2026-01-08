@@ -2,6 +2,9 @@
 
 # <img src="https://raw.githubusercontent.com/acmdf/vrctv/main/vrctv-desktop/src/favicon.png" width="64" height="64"> </img> VRCTV
 
+[![GitHub release](https://img.shields.io/github/release/acmdf/vrctv.svg)](https://github.com/acmdf/vrctv/releases/latest)
+[![VRCX Discord Invite](https://img.shields.io/badge/discord-invite-blue?logo=discord)](https://discord.gg/tvuPEkQrW9)
+
 </div>
 
 VRCTV is a stream helper app, that provides avatar changing and overlay reward support
@@ -45,6 +48,7 @@ To install the dependencies, run `pnpm i`
 
 # In future
 
+- Github releases (+ server selection)
 - Audio rewards
 - Testing is non-existent
 - Polling maybe
