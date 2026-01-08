@@ -7,6 +7,7 @@ import { rewardStore, updateContext } from "$lib/stores/rewards";
 import type { KV } from "$lib/triggers/types";
 
 export type SetOSCRewardParams = {
+    id: string;
     for_avatar: string;
     params: KV;
     channel_id: string;
@@ -25,6 +26,7 @@ export class SetOSCReward extends CancellableReward<SetOSCRewardParams> {
 
     constructor(params: Partial<SetOSCRewardParams>) {
         super({
+            id: params.id ?? crypto.randomUUID(),
             for_avatar: params.for_avatar || get(rewardStore).baseAvatarId || "",
             params: params.params || {},
             return_to: params.return_to || "previous",

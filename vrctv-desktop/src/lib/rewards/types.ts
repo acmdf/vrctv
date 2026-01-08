@@ -18,7 +18,7 @@ export type StoredReward = {
     params: any;
 };
 
-export type Reward<P> = {
+export type Reward<P extends { id: string }> = {
     id: string;
     title: string;
     description: string;
@@ -26,7 +26,7 @@ export type Reward<P> = {
     new(params: Partial<P>): RewardInstance<P>;
 }
 
-export class RewardInstance<P> {
+export class RewardInstance<P extends { id: string }> {
     reward!: Reward<P>;
 
     private _params!: P;
@@ -37,8 +37,10 @@ export class RewardInstance<P> {
         this._params = value;
     }
 
-    constructor(params: P) {
-        this.params = params;
+    constructor(params: P | { id: undefined }) {
+        this.params = Object.assign({
+            id: crypto.randomUUID(),
+        }, params) as P;
     }
 
     // Function called to check if the reward is ready to start, e.g. if another reward is still active that would conflict
@@ -71,7 +73,7 @@ export class RewardInstance<P> {
     }
 }
 
-export class CancellableReward<P> extends RewardInstance<P> {
+export class CancellableReward<P extends { id: string }> extends RewardInstance<P> {
     onCancel(_context: RewardContext): Promise<void> {
         throw new Error("Method not implemented.");
     }

@@ -5,6 +5,7 @@ import { debug, info } from "@tauri-apps/plugin-log";
 import { updateContext } from "$lib/stores/rewards";
 
 export type SetWarudoOscRewardParams = {
+    id: string;
     params: KV;
     channel_id: string;
     timeout_ms: number;
@@ -20,6 +21,7 @@ export class SetWarudoOscReward extends CancellableReward<SetWarudoOscRewardPara
 
     constructor(params: Partial<SetWarudoOscRewardParams>) {
         super({
+            id: params.id ?? crypto.randomUUID(),
             params: params.params ?? {},
             channel_id: params.channel_id ?? "",
             return_params: params.return_params ?? {},

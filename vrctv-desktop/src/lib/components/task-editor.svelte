@@ -65,7 +65,7 @@
     <Card.Content>
         <h2 class="text-lg font-medium mb-4">Actions</h2>
         <Queue.Root>
-            {#each rewards as _, i}
+            {#each rewards as reward, i (reward.params.id)}
                 <Queue.Item>
                     <RewardEditor
                         bind:reward={
@@ -82,8 +82,7 @@
                             rewards = rewards;
                         }}
                         onduplicate={() => {
-                            const ctor =
-                                rewards[i].constructor as typeof RewardInstance;
+                            const ctor = rewards[i].reward;
                             const copy = new ctor(
                                 structuredClone(rewards[i].params),
                             );
@@ -99,8 +98,7 @@
                     (v) => {
                         const ctor = rewardConstructors[v]?.reward;
 
-                        if (ctor)
-                            rewards.push(new ctor({}) as RewardInstance<any>);
+                        if (ctor) rewards.push(new ctor({ id: crypto.randomUUID() }));
                         rewards = rewards;
                     }
                 }

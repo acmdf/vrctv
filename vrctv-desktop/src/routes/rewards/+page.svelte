@@ -10,7 +10,7 @@
   import TaskEditor from "$lib/components/task-editor.svelte";
 
   const { data: rawData }: PageProps = $props();
-  const data = rawData as Result<Avatar[], string>;
+  const data = $derived(rawData) as Result<Avatar[], string>;
 
   const avatars = $derived(
     data.status === "ok"

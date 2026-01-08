@@ -2,6 +2,7 @@ import { RewardInstance, type RewardContext } from "./types";
 import { SetOverlayReward } from "./set-overlay";
 
 export type CancelOverlayRewardParams = {
+    id: string;
     overlay_id?: number;
 }
 export class CancelOverlayReward extends RewardInstance<CancelOverlayRewardParams> {

@@ -4,6 +4,7 @@ import { overlays, overlayVisibleStore } from "$lib/stores/overlays";
 import { updateContext } from "$lib/stores/rewards";
 
 export type SetOverlayRewardParams = {
+    id: string;
     overlay_id: number;
     timeout_ms: number;
     show: boolean;
@@ -18,6 +19,7 @@ export class SetOverlayReward extends CancellableReward<SetOverlayRewardParams> 
 
     constructor(params: Partial<SetOverlayRewardParams>) {
         super({
+            id: params.id ?? crypto.randomUUID(),
             overlay_id: params.overlay_id ?? 0,
             timeout_ms: params.timeout_ms ?? 0,
             show: params.show ?? true,

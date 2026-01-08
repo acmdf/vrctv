@@ -1,7 +1,9 @@
 import { RewardInstance, type RewardContext } from "./types";
 import { SetAvatarReward } from "./set-avatar";
 
-export type CancelAvatarRewardParams = {}
+export type CancelAvatarRewardParams = {
+    id: string;
+}
 export class CancelAvatarReward extends RewardInstance<CancelAvatarRewardParams> {
     static id = "cancel-avatar-reward";
     static title = "Cancel Avatar Reward";

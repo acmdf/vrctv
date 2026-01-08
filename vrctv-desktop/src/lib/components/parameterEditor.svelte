@@ -5,17 +5,15 @@
   import Input from "./ui/input/input.svelte";
   import { getAvatarOscs } from "$lib/avatar-list-cache";
 
-  const {
+  let {
     avatarId,
-    param,
-    value,
-    onChange,
+    param = $bindable(),
+    value = $bindable(),
     placeholder = "",
   }: {
     avatarId?: string;
-    param: string | null;
+    param?: string;
     value?: string;
-    onChange: (param: string | null, value: string) => void;
     placeholder?: string;
   } = $props();
 
@@ -43,15 +41,13 @@
       : placeholder,
   );
 
-  const params = $derived(
-    avatarId ? await getAvatarOscs(avatarId) : undefined,
-  );
+  const params = $derived(avatarId ? await getAvatarOscs(avatarId) : undefined);
 
   $effect(() => {
     if (!avatarId || !params) return;
 
     if (param && !params.includes(param.replace("/avatar/parameters/", ""))) {
-      onChange(null, value || "");
+      param = undefined;
     }
   });
 </script>
@@ -61,15 +57,7 @@
 {:else}
   <div class="flex flex-row items-center space-x-2">
     {#if params}
-      <Select.Root
-        type="single"
-        bind:value={
-          () => param || "",
-          (selectedParam: string) => {
-            onChange(selectedParam, value || "");
-          }
-        }
-      >
+      <Select.Root type="single" bind:value={param}>
         <Select.Trigger
           class={placeholder ? "text-muted-foreground flex-2" : "flex-2"}
         >
@@ -84,26 +72,11 @@
         </Select.Content>
       </Select.Root>
     {:else}
-      <Input
-        bind:value={
-          () => param || "",
-          (selectedParam: string) => {
-            onChange(selectedParam, value || "");
-          }
-        }
-        class="flex-2"
-        placeholder={triggerText}
-      />
+      <Input bind:value={param} class="flex-2" placeholder={triggerText} />
     {/if}
     {#if value !== undefined}
       <InputGroup.Root class="flex-1">
-        <InputGroup.Input
-          type="text"
-          {value}
-          onchange={(e) => {
-            onChange(param, (e.currentTarget as HTMLInputElement).value);
-          }}
-        />
+        <InputGroup.Input type="text" bind:value />
         <InputGroup.Addon>
           <InputGroup.Text>To:</InputGroup.Text>
         </InputGroup.Addon>
@@ -115,7 +88,7 @@
         size="64"
         strokeWidth={8}
         onclick={() => {
-          onChange(null, value || "");
+          param = undefined;
         }}
       />
     {/if}

@@ -7,6 +7,7 @@ import { info } from "@tauri-apps/plugin-log";
 import { rewardStore, updateContext } from "$lib/stores/rewards";
 
 export type SetAvatarRewardParams = {
+    id: string;
     avatar_id: string;
     return_to: "default" | "previous" | "specific";
     return_avatar_id?: string;
@@ -23,6 +24,7 @@ export class SetAvatarReward extends CancellableReward<SetAvatarRewardParams> {
 
     constructor(params: Partial<SetAvatarRewardParams>) {
         super({
+            id: params.id ?? crypto.randomUUID(),
             avatar_id: params.avatar_id ?? "",
             return_to: params.return_to ?? "default",
             timeout_ms: params.timeout_ms ?? 0,

@@ -2,6 +2,7 @@ import { RewardInstance, type RewardContext } from "./types";
 import { SetOSCReward } from "./set-osc";
 
 export type CancelOSCRewardParams = {
+    id: string;
     channel_id?: string;
 }
 export class CancelOSCReward extends RewardInstance<CancelOSCRewardParams> {

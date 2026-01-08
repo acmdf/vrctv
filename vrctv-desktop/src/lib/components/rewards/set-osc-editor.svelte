@@ -21,19 +21,20 @@
 
     $effect(() => {
         if (!(reward instanceof SetOSCReward)) {
-            reward = new SetOSCReward({});
+            reward = new SetOSCReward({ id: crypto.randomUUID() });
         }
     });
 
-    let rewardParams: SetOSCRewardParams = $derived(reward.params);
+    let rewardParams: SetOSCRewardParams = $derived({ ...reward.params });
 
     let avatarId = $derived(reward.params.for_avatar);
+    let params = $derived({ ...reward.params.params });
+    let returnParams = $derived({ ...reward.params.return_params });
 
     function updateParams<T extends keyof SetOSCRewardParams>(
         field: T,
         value: SetOSCRewardParams[T],
     ) {
-        console.log("Updating param", field, "to", value);
         reward.params[field] = value;
         reward = reward;
     }
@@ -55,38 +56,44 @@
 />
 <div class="grid items-center gap-1.5 mb-2">
     <Label>Sets Parameters</Label>
-    {#each Object.entries(reward.params.params as KV) as [param, value]}
+    {#each Object.entries(params as KV) as [param, value] (param)}
         <ParameterEditor
             {avatarId}
-            {param}
-            {value}
-            onChange={(newParam, val) => {
-                console.log("ParameterEditor changed:", newParam, val);
+            bind:param={
+                () => param,
+                (newParam) => {
+                    if (param !== newParam) {
+                        delete params[param];
+                    }
 
-                if (param !== newParam) {
-                    delete reward.params.params[param];
+                    if (newParam) {
+                        params[newParam] = value;
+                    }
+
+                    updateParams("params", params);
                 }
-
-                if (newParam) {
-                    reward.params.params[newParam] = val;
+            }
+            bind:value={
+                () => value,
+                (val) => {
+                    params[param] = val;
+                    updateParams("params", params);
                 }
-
-                updateParams("params", reward.params.params);
-            }}
+            }
         />
     {/each}
     <ParameterEditor
         {avatarId}
         placeholder="Set this parameter"
-        param=""
-        value=""
-        onChange={(param, val) => {
-            if (!param) return;
+        bind:param={
+            () => "",
+            (newParam) => {
+                if (!newParam) return;
 
-            reward.params.params[param] = val;
-
-            updateParams("params", reward.params.params);
-        }}
+                params[newParam] = "";
+                updateParams("params", params);
+            }
+        }
     />
 </div>
 <div class="grid items-center gap-1.5 mb-2">
@@ -121,36 +128,51 @@
 {#if reward.params.return_to === "specific"}
     <div class="grid items-center gap-1.5">
         <Label>Returns to Parameters</Label>
-        {#each Object.entries(reward.params.return_params as KV) as [param, value]}
+        {#each Object.entries(returnParams as KV) as [param, value] (param)}
             <ParameterEditor
-                avatarId={reward.params.for_avatar}
-                {param}
-                {value}
-                onChange={(newParam, val) => {
-                    if (param !== newParam) {
-                        delete reward.params.return_params[param];
-                    }
+                avatarId={avatarId}
+                bind:param={
+                    () => param,
+                    (newParam) => {
+                        if (param !== newParam) {
+                            delete returnParams[param];
+                        }
 
-                    if (newParam) {
-                        reward.params.return_params[newParam] = val;
-                    }
+                        if (newParam) {
+                            returnParams[newParam] = value;
+                        }
 
-                    updateParams("return_params", reward.params.return_params);
-                }}
+                        updateParams(
+                            "return_params",
+                            returnParams,
+                        );
+                    }
+                }
+                bind:value={
+                    () => value,
+                    (val) => {
+                        returnParams[param] = val;
+
+                        updateParams(
+                            "return_params",
+                            returnParams,
+                        );
+                    }
+                }
             />
         {/each}
         <ParameterEditor
-            avatarId={reward.params.for_avatar}
+            avatarId={avatarId}
             placeholder="Set this parameter"
-            param=""
-            value=""
-            onChange={(param, val) => {
-                if (!param) return;
+            bind:param={
+                () => "",
+                (newParam) => {
+                    if (!newParam) return;
 
-                reward.params.return_params[param] = val;
-
-                updateParams("return_params", reward.params.return_params);
-            }}
+                    returnParams[newParam] = "";
+                    updateParams("return_params", returnParams);
+                }
+            }
         />
     </div>
 {/if}
