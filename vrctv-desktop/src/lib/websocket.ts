@@ -7,7 +7,7 @@ import { commands } from "../bindings";
 import { isPermissionGranted, requestPermission, sendNotification } from "@tauri-apps/plugin-notification";
 import { get, writable } from "svelte/store";
 import type WebSocket from "@tauri-apps/plugin-websocket";
-import type { MessageKind } from "@tauri-apps/plugin-websocket";
+import type { Message, MessageKind } from "@tauri-apps/plugin-websocket";
 import { eventLogStore, TaskState, taskStateStore } from "./stores/debug";
 import { customRewardsStore, rewardHandler } from "./stores/rewards";
 import { getVersion } from "@tauri-apps/api/app";
@@ -16,23 +16,22 @@ export const serverConnection = writable<ServerConnection | null>(null);
 
 class ServerConnection {
     private websocket: WebSocket;
+    private retryMethod: () => void;
     private requestNo = 0;
     private intervalHandle: number | null = null;
     public connected = false;
+    public loggedIn = false;
+
+    private requestQueue: Array<ClientMessage> = [];
 
     constructor(websocket: WebSocket, retryMethod: () => void) {
         this.websocket = websocket;
+        this.retryMethod = retryMethod;
 
         // Start pinging every 30 seconds
         this.intervalHandle = setInterval(async () => {
             if (this.connected) {
-                try {
-                    await this.websocket?.send({ type: "Ping", data: [this.requestNo] });
-                } catch (e) {
-                    error(`Failed to send ping: ${e}`);
-                    this.close();
-                    retryMethod();
-                }
+                await this.sendRaw({ type: "Ping", data: [this.requestNo] });
             }
         }, 30000);
 
@@ -54,13 +53,32 @@ class ServerConnection {
         this.connected = false;
     }
 
-    send(data: ClientMessage) {
-        try {
-            this.websocket.send(JSON.stringify(data));
-        } catch (e) {
-            error(`Failed to send message: ${e}`);
-            this.close();
+    send(data: ClientMessage, queueIfNotLoggedIn = true) {
+        if (!this.loggedIn && queueIfNotLoggedIn) {
+            this.requestQueue.push(data);
+            return;
         }
+
+        this.sendRaw(JSON.stringify(data));
+    }
+
+    async sendRaw(data: string | number[] | Message) {
+        try {
+            await this.websocket?.send(data);
+        } catch (e) {
+            error(`Failed to send message (${JSON.stringify(data)}): ${e}`);
+            this.close();
+            this.retryMethod();
+        }
+    }
+
+    sendQueued() {
+        if (!this.loggedIn) return;
+
+        for (const message of this.requestQueue) {
+            this.send(message);
+        }
+        this.requestQueue = [];
     }
 
     getNextRequestId(reason: string): number {
@@ -87,8 +105,8 @@ class ServerConnection {
     }
 }
 
-export async function onConnect(i: WebSocket, retryMethod: () => void): Promise<ServerConnection> {
-    const conn = new ServerConnection(i, retryMethod);
+export async function onConnect(ws: WebSocket, retryMethod: () => void): Promise<ServerConnection> {
+    const conn = new ServerConnection(ws, retryMethod);
     serverConnection.set(conn);
     conn.connected = true;
     const stateToken = localStorage.getItem("stateToken");
@@ -99,9 +117,9 @@ export async function onConnect(i: WebSocket, retryMethod: () => void): Promise<
 
     if (stateToken) {
         clientStateStore.update(state => ({ ...state, id: stateToken }));
-        conn.send({ type: "connect", state_token: stateToken, client_version: version });
+        conn.send({ type: "connect", state_token: stateToken, client_version: version }, false);
     } else {
-        conn.send({ type: "codeRequest", client_version: version } as ClientMessage);
+        conn.send({ type: "codeRequest", client_version: version } as ClientMessage, false);
     }
 
     return conn;
@@ -147,6 +165,15 @@ export function handleMessage(message: MessageKind<"Text", string>) {
                 localStorage.setItem("stateToken", parsed.state_token);
                 clientStateStore.update(state => ({ ...state, id: parsed.state_token }));
 
+                serverConnection.update(conn => {
+                    if (conn) {
+                        conn.loggedIn = true;
+                        conn.sendQueued();
+                    }
+                    return conn;
+                });
+                toast.success("Connected to server successfully.");
+
                 break;
             }
             toast.error("Could not get the connection token from the server.");
@@ -154,6 +181,15 @@ export function handleMessage(message: MessageKind<"Text", string>) {
         case "connectResponse": {
             // Remove type field
             const { type, ...rest } = parsed;
+
+            serverConnection.update(conn => {
+                if (conn) {
+                    conn.loggedIn = true;
+                    conn.sendQueued();
+                }
+                return conn;
+            });
+            toast.success("Connected to server successfully.");
 
             // Merge the rest of the fields into the client state store
             clientStateStore.update(state => ({ ...state, ...rest }));

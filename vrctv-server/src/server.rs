@@ -181,9 +181,9 @@ pub async fn handle_client(
             Some(msg) = rx.next() => {
                 match msg {
                     Ok(msg) => {
-                        let message_res = handle_message(&db, &http_client, &table_tx, msg, &app_state, client_context.clone()).await;
+                        let message_res = handle_message(&db, &http_client, &table_tx, msg.clone(), &app_state, client_context.clone()).await;
                         if let Err(e) = message_res {
-                            error!("Error handling message from {}: {}", who, e);
+                            error!("Error handling message from {}: {} ({:?})", who, e, msg);
                             let _ = send_error(e, "server", &table_tx, -1).await;
                             break;
                         } else if let Ok(false) = message_res {
