@@ -1,6 +1,8 @@
 import { writable, type Writable } from "svelte/store";
+import * as ENV from "$env/static/public";
 import type { OscValue } from "../../bindings";
 import type { ConnectResponse } from "../../../../vrctv-common/bindings/ConnectResponse";
+import { persisted } from "svelte-persisted-store";
 
 interface LocalState {
     connected: boolean;
@@ -21,3 +23,6 @@ export const clientStateStore: Writable<ClientState> = writable({
     streamlabs_id: null,
     streamlabs_name: null
 })
+
+export const wssUrl: Writable<string> = persisted("PUBLIC_WEBSOCKET_URL", "PUBLIC_WEBSOCKET_URL" in ENV ? ENV.PUBLIC_WEBSOCKET_URL : "");
+export const backendUrl: Writable<string> = persisted("PUBLIC_BACKEND_URL", "PUBLIC_BACKEND_URL" in ENV ? ENV.PUBLIC_BACKEND_URL : "");

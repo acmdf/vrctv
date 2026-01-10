@@ -1,8 +1,7 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { clientStateStore } from "../stores/global";
+    import { clientStateStore, wssUrl } from "../stores/global";
     import { handleMessage, onConnect } from "$lib/websocket";
-    import { PUBLIC_WEBSOCKET_URL } from "$env/static/public";
     import { debug, info, warn } from "@tauri-apps/plugin-log";
     import WebSocket from "@tauri-apps/plugin-websocket";
 
@@ -13,9 +12,15 @@
     async function tryCreateWebSocket() {
         warn("Attempting to create WebSocket connection...");
 
+        if ($wssUrl === "") {
+            warn("No server selected");
+            restartWebsocket();
+            return;
+        }
+
         let ws: WebSocket;
         try {
-            ws = await WebSocket.connect(PUBLIC_WEBSOCKET_URL);
+            ws = await WebSocket.connect($wssUrl);
         } catch (e) {
             clientStateStore.update((s) => ({ ...s, connected: false }));
             info(`WebSocket connection failed: ${e}`);

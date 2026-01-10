@@ -15,6 +15,12 @@
     import { ModeWatcher } from "mode-watcher";
     import ThemeSwitcher from "$lib/components/themeSwitcher.svelte";
     import * as Sidebar from "$lib/components/ui/sidebar/index.js";
+    import ServerSelectorDialogue from "$lib/components/server-selector-dialogue.svelte";
+    import { wssUrl, backendUrl } from "$lib/stores/global";
+
+    const serverUnselected = $wssUrl === "" && $backendUrl === "";
+
+    let selectorOpen = $state(serverUnselected);
 
     onMount(async () => {
         await attachConsole();
@@ -71,6 +77,8 @@
 <div class="fixed bottom-4 right-4 z-50">
     <ThemeSwitcher />
 </div>
+
+<ServerSelectorDialogue bind:open={selectorOpen} />
 
 <!-- Services -->
 <Toaster position="bottom-center" />

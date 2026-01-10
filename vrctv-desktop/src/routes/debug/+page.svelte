@@ -18,9 +18,11 @@
     rewardHandler,
     rewardStore,
   } from "$lib/stores/rewards";
+  import ServerSelectorDialogue from "$lib/components/server-selector-dialogue.svelte";
 
   const { data }: PageProps = $props();
 
+  let serverSelectOpen = $state<boolean>(false);
   let setParam = $state<string>("");
   let setValue = $state<string>("");
   let avatarId = $state<string>("");
@@ -36,7 +38,7 @@
   const avatars = $derived(
     data.status === "ok"
       ? data.data.sort((a, b) => a.name.localeCompare(b.name))
-      : [],
+      : []
   );
 
   function formatValue(value: any): string {
@@ -51,7 +53,7 @@
       type: "twitchTrigger",
       GetCustomRewards: {
         request_id: $serverConnection?.getNextRequestId(
-          "Get Custom Rewards - Debug Page",
+          "Get Custom Rewards - Debug Page"
         ),
       },
     });
@@ -60,6 +62,8 @@
   warn(`Debug page data: ${JSON.stringify(data)}`);
 </script>
 
+<ServerSelectorDialogue bind:open={serverSelectOpen} />
+
 <h1 class="text-3xl font-bold mb-4">Debug Information</h1>
 <div class="flex w-full space-x-4 mb-4">
   <button
@@ -67,7 +71,7 @@
     onclick={() =>
       sendNotif(
         "Test Notification",
-        "This is a test notification from the debug page.",
+        "This is a test notification from the debug page."
       )}
   >
     Test notification
@@ -77,6 +81,12 @@
     onclick={() => rewardStore.set(defaultRewardStore)}
   >
     Set default rewards
+  </button>
+  <button
+    class="p-8 rounded bg-grey-800 text-center flex-1 hover:bg-gray-700"
+    onclick={() => (serverSelectOpen = true)}
+  >
+    Open server selector
   </button>
 </div>
 
@@ -109,7 +119,7 @@
       class="p-2 bg-gray-800 text-white rounded hover:bg-gray-700"
       onclick={async () => {
         toast.success(
-          JSON.stringify(await commands.setOsc(setParam, setValue)),
+          JSON.stringify(await commands.setOsc(setParam, setValue))
         );
       }}
     >
@@ -137,7 +147,7 @@
   class="p-2 bg-gray-800 text-white rounded hover:bg-gray-700 mb-4"
   onclick={async () => {
     toast.success(
-      JSON.stringify(await commands.setWarudoOsc(setParam, setValue)),
+      JSON.stringify(await commands.setWarudoOsc(setParam, setValue))
     );
   }}
 >

@@ -1,6 +1,5 @@
 <script>
-  import { clientStateStore } from "$lib/stores/global";
-  import { PUBLIC_BACKEND_URL } from "$env/static/public";
+  import { backendUrl, clientStateStore } from "$lib/stores/global";
   import StatusButton from "$lib/components/statusButton.svelte";
 </script>
 
@@ -8,7 +7,7 @@
   {#if $clientStateStore.connected}
     <StatusButton
       status_good={$clientStateStore.twitch_name}
-      href={`${PUBLIC_BACKEND_URL}twitch/auth/${$clientStateStore.id}`}
+      href={`${$backendUrl}twitch/auth/${$clientStateStore.id}`}
     >
       {#if $clientStateStore.twitch_name}
         Connected to Twitch as {$clientStateStore.twitch_name}
@@ -18,7 +17,7 @@
     </StatusButton>
     <StatusButton
       status_good={$clientStateStore.has_streamlabs}
-      href={`${PUBLIC_BACKEND_URL}streamlabs/auth/${$clientStateStore.id}`}
+      href={`${$backendUrl}streamlabs/auth/${$clientStateStore.id}`}
     >
       {#if $clientStateStore.has_streamlabs}
         Connected to Streamlabs as {$clientStateStore.streamlabs_name}
