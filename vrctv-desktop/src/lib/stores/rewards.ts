@@ -10,7 +10,7 @@ import { restoreReward, restoreTrigger } from "$lib/task-parts";
 import { TriggerInstance } from "$lib/triggers/types";
 import { RewardInstance, type RewardContext } from "$lib/rewards/types";
 import type { CustomRewardResponse } from "../../../../vrctv-common/bindings/CustomRewardResponse";
-import { RewardHandler } from "$lib/rewardHandler";
+import { RewardHandler } from "$lib/reward-handler";
 
 export interface Task {
     id: string;

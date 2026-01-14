@@ -7,13 +7,13 @@
     import { onMount } from "svelte";
     import Menu from "./menu.svelte";
     import Logo from "$lib/components/logo.svelte";
-    import StoreManager from "$lib/components/storeManager.svelte";
-    import ConnectionManager from "$lib/components/connectionManager.svelte";
+    import StoreManager from "$lib/components/store-manager.svelte";
+    import ConnectionManager from "$lib/components/connection-manager.svelte";
     import { attachConsole, info } from "@tauri-apps/plugin-log";
     import { overlays, overlayVisibleStore } from "$lib/stores/overlays";
     import { currentOverlayState } from "$lib/overlays";
     import { ModeWatcher } from "mode-watcher";
-    import ThemeSwitcher from "$lib/components/themeSwitcher.svelte";
+    import ThemeSwitcher from "$lib/components/theme-switcher.svelte";
     import * as Sidebar from "$lib/components/ui/sidebar/index.js";
     import ServerSelectorDialogue from "$lib/components/server-selector-dialogue.svelte";
     import { wssUrl, backendUrl } from "$lib/stores/global";

@@ -2,7 +2,7 @@
     import * as InputGroup from "$lib/components/ui/input-group/index.js";
     import type { RewardInstance } from "$lib/rewards/types";
     import Label from "../ui/label/label.svelte";
-    import ParameterEditor from "../parameterEditor.svelte";
+    import ParameterEditor from "../parameter-editor.svelte";
     import type { KV } from "$lib/triggers/types";
     import Input from "../ui/input/input.svelte";
     import {

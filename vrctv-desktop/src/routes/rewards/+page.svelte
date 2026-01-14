@@ -5,7 +5,7 @@
   import { serverConnection } from "$lib/websocket";
   import * as Card from "$lib/components/ui/card/index.js";
   import Button from "$lib/components/ui/button/button.svelte";
-  import AvatarSelector from "$lib/components/avatarSelector.svelte";
+  import AvatarSelector from "$lib/components/avatar-selector.svelte";
   import { TwitchWhisperTrigger } from "$lib/triggers/twitch-whisper";
   import TaskEditor from "$lib/components/task-editor.svelte";
 

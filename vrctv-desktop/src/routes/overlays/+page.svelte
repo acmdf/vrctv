@@ -9,7 +9,7 @@
   import { Input } from "$lib/components/ui/input";
   import { Label } from "$lib/components/ui/label";
   import Button from "$lib/components/ui/button/button.svelte";
-  import OverlayPreview from "$lib/components/overlayPreview.svelte";
+  import OverlayPreview from "$lib/components/overlay-preview.svelte";
 
   function updateOverlay<T extends keyof OverlayItem>(
     id: number,

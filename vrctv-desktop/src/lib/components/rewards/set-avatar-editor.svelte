@@ -7,7 +7,7 @@
         type SetAvatarRewardParams,
     } from "$lib/rewards/set-avatar";
     import type { RewardInstance } from "$lib/rewards/types";
-    import AvatarSelector from "../avatarSelector.svelte";
+    import AvatarSelector from "../avatar-selector.svelte";
     import Label from "../ui/label/label.svelte";
 
     let {

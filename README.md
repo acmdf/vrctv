@@ -15,13 +15,11 @@ The server component needs some env variables set for it to function correctly, 
 ```
 STREAMLABS_REDIRECT=http://localhost:3000/streamlabs/callback
 STREAMLABS_SCOPES="donations.read socket.token mediashare.control"
-STREAMLABS_VERSION=1
 STREAMLABS_CLIENT=my-streamlabs-client-key
 STREAMLABS_SECRET=STREAMLABSSECRET
 
 TWITCH_REDIRECT=http://localhost:3000/twitch/callback
 TWITCH_SCOPES="user_read bits:read channel:bot channel:read:polls channel:manage:polls channel:read:redemptions channel:manage:redemptions user:read:chat user:read:whispers"
-TWITCH_VERSION=1
 TWITCH_CLIENT=mytwitchclient
 TWITCH_SECRET=mytwitchsecret
 

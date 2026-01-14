@@ -2,13 +2,13 @@
     import * as Tabs from "$lib/components/ui/tabs";
     import * as InputGroup from "$lib/components/ui/input-group/index.js";
     import type { RewardInstance } from "$lib/rewards/types";
-    import AvatarSelector from "../avatarSelector.svelte";
+    import AvatarSelector from "../avatar-selector.svelte";
     import {
         SetOSCReward,
         type SetOSCRewardParams,
     } from "$lib/rewards/set-osc";
     import Label from "../ui/label/label.svelte";
-    import ParameterEditor from "../parameterEditor.svelte";
+    import ParameterEditor from "../parameter-editor.svelte";
     import { cachedAvatarStore } from "$lib/avatar-list-cache";
     import type { KV } from "$lib/triggers/types";
     import Input from "../ui/input/input.svelte";

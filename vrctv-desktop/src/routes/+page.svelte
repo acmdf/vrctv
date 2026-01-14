@@ -1,6 +1,6 @@
 <script>
   import { backendUrl, clientStateStore } from "$lib/stores/global";
-  import StatusButton from "$lib/components/statusButton.svelte";
+  import StatusButton from "$lib/components/status-button.svelte";
 </script>
 
 <div class="flex w-full space-x-4 mb-4">
