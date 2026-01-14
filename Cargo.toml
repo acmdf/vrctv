@@ -7,6 +7,9 @@ members = [
     "vrctv-overlay",
 ]
 
+[workspace.package]
+version = "0.3.0"
+
 [workspace.dependencies]
 log = "0.4.28"
 tokio = { version = "1.47.1", features = ["full"] }

@@ -26,7 +26,7 @@ TWITCH_SECRET=mytwitchsecret
 PUBLIC_WEBSOCKET_URL=wss://example.com/ws
 PUBLIC_BACKEND_URL=https://example.com/
 
-CLIENT_VERSION=0.2.0
+CLIENT_VERSION=0.3.0
 ```
 
 # Building
