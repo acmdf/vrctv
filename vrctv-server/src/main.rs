@@ -2,10 +2,7 @@ use std::{collections::HashMap, env, net::SocketAddr, sync::Arc, time::Duration}
 
 use axum::{
     Extension, Router,
-    extract::{
-        ConnectInfo, Path, State,
-        ws::{WebSocketUpgrade},
-    },
+    extract::{ConnectInfo, Path, State, ws::WebSocketUpgrade},
     http::HeaderValue,
     response::{Html, IntoResponse, Redirect},
     routing::{any, get},
@@ -30,6 +27,7 @@ use crate::{
     server::{ClientConnection, handle_client},
 };
 
+mod config;
 mod db;
 mod entities;
 mod server;
@@ -66,7 +64,8 @@ async fn main() {
         .init();
 
     // build our application with a route
-    let app = app();
+    let config = config::config().await;
+    let app = app(&config);
 
     let mut listenfd = ListenFd::from_env();
     let listener = match listenfd.take_tcp_listener(0).unwrap() {
@@ -79,7 +78,9 @@ async fn main() {
         // otherwise fall back to local listening
         None => {
             debug!("no listener from listenfd, defaulting to TcpListener::bind");
-            TcpListener::bind("0.0.0.0:3000").await.unwrap()
+            TcpListener::bind((config.server_host(), config.server_port()))
+                .await
+                .unwrap()
         }
     };
 
@@ -118,11 +119,11 @@ async fn shutdown_signal() {
     }
 }
 
-fn app() -> Router {
+fn app(config: &config::Config) -> Router {
     let connection_table = Arc::new(Mutex::new(HashMap::new()));
 
     // Setup the database
-    let db = Database::new("./db.sqlite").unwrap();
+    let db = Database::new(config.db_url()).unwrap();
     {
         let conn = db.connection().unwrap();
 
@@ -167,10 +168,9 @@ fn app() -> Router {
         .unwrap();
     }
 
-    let http_client = reqwest::Client::default_client_with_name(Some(HeaderValue::from_static(
-        "vrctv-server",
-    )))
-    .expect("Could not create default client");
+    let http_client =
+        reqwest::Client::default_client_with_name(Some(HeaderValue::from_static("vrctv-server")))
+            .expect("Could not create default client");
 
     Router::new()
         .route("/twitch/auth/{state}", get(twitch_redirect))
@@ -202,30 +202,30 @@ async fn handler() -> Html<&'static str> {
 }
 
 async fn twitch_redirect(Path(state): Path<String>) -> impl IntoResponse {
+    let config = config::config().await;
+
     // URL encode the scopes
-    let scopes = env::var("TWITCH_SCOPES")
-        .expect("You must provide a TWITCH_SCOPES env var")
-        .replace(' ', "%20");
+    let scopes = config.twitch_oauth().scopes().replace(' ', "%20");
 
     Redirect::temporary(&format!(
         "https://id.twitch.tv/oauth2/authorize?response_type=code&client_id={}&redirect_uri={}&scope={}&state={}",
-        env::var("TWITCH_CLIENT").expect("You must provide a TWITCH_CLIENT env var"),
-        env::var("TWITCH_REDIRECT").expect("You must provide a TWITCH_REDIRECT env var"),
+        config.twitch_oauth().client(),
+        config.twitch_oauth().redirect(),
         scopes,
         state
     ))
 }
 
 async fn streamlabs_redirect(Path(state): Path<String>) -> impl IntoResponse {
+    let config = config::config().await;
+
     // URL encode the scopes
-    let scopes = env::var("STREAMLABS_SCOPES")
-        .expect("You must provide a STREAMLABS_SCOPES env var")
-        .replace(' ', "%20");
+    let scopes = config.streamlabs_oauth().scopes().replace(' ', "%20");
 
     Redirect::temporary(&format!(
         "https://streamlabs.com/api/v2.0/authorize?response_type=code&client_id={}&redirect_uri={}&scope={}&state={}",
-        env::var("STREAMLABS_CLIENT").expect("You must provide a STREAMLABS_CLIENT env var"),
-        env::var("STREAMLABS_REDIRECT").expect("You must provide a STREAMLABS_REDIRECT env var"),
+        config.streamlabs_oauth().client(),
+        config.streamlabs_oauth().redirect(),
         scopes,
         state
     ))

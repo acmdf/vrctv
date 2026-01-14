@@ -1,4 +1,4 @@
-use std::{collections::HashMap, env};
+use std::{collections::HashMap};
 
 use axum::{
     Extension,
@@ -14,6 +14,7 @@ use twitch_api::twitch_oauth2::{
 
 use crate::{
     AppState,
+    config::config,
     db::Database,
     entities::{ActiveKey, TwitchUser},
 };
@@ -25,10 +26,11 @@ pub async fn use_authorization_code(
     http_client: &reqwest::Client,
     code: &str,
 ) -> Result<UserToken, String> {
-    let client = env::var("TWITCH_CLIENT").map_err(|_| "Missing TWITCH_CLIENT env var")?;
-    let client_secret = env::var("TWITCH_SECRET").map_err(|_| "Missing TWITCH_SECRET env var")?;
-    let callback_url =
-        env::var("TWITCH_REDIRECT").map_err(|_| "Missing TWITCH_REDIRECT env var")?;
+    let config = config().await;
+
+    let client = config.twitch_oauth().client().to_string();
+    let client_secret = config.twitch_oauth().secret().to_string();
+    let callback_url = config.twitch_oauth().redirect().to_string();
 
     let callback_url =
         Url::parse(&callback_url).map_err(|e| format!("Invalid TWITCH_REDIRECT URL: {}", e))?;
@@ -71,6 +73,8 @@ pub async fn auth_callback(
     Extension(http_client): Extension<reqwest::Client>,
     State(app_state): State<AppState>,
 ) -> impl IntoResponse {
+    let config = config().await;
+
     if let Some(error) = params.get("error") {
         let description = params
             .get("error_description")
@@ -108,8 +112,7 @@ pub async fn auth_callback(
     };
 
     // Check that the scopes match what we expect
-    let expected_scopes =
-        env::var("TWITCH_SCOPES").expect("You must provide a TWITCH_SCOPES env var");
+    let expected_scopes = config.twitch_oauth().scopes();
     if scopes != &expected_scopes {
         return (
             axum::http::StatusCode::BAD_REQUEST,

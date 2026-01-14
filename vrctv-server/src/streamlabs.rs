@@ -1,4 +1,4 @@
-use std::{collections::HashMap, env};
+use std::{collections::HashMap};
 
 use anyhow::Result;
 use axum::{
@@ -11,11 +11,11 @@ use rusqlite::params;
 
 use crate::{
     AppState,
+    config::config,
     db::Database,
     entities::{ActiveKey, StreamlabsUser},
 };
 /// IMPORTANT NOTE: Streamlabs uses OAuth2 tokens that do NOT expire
-
 pub mod socket;
 
 #[derive(Debug, Clone)]
@@ -177,11 +177,11 @@ pub async fn use_authorization_code(
     http_client: &reqwest::Client,
     code: &str,
 ) -> Result<(String, String), String> {
-    let client = env::var("STREAMLABS_CLIENT").map_err(|_| "Missing STREAMLABS_CLIENT env var")?;
-    let client_secret =
-        env::var("STREAMLABS_SECRET").map_err(|_| "Missing STREAMLABS_SECRET env var")?;
-    let callback_url =
-        env::var("STREAMLABS_REDIRECT").map_err(|_| "Missing STREAMLABS_REDIRECT env var")?;
+    let config = config().await;
+
+    let client = config.streamlabs_oauth().client().to_string();
+    let client_secret = config.streamlabs_oauth().secret().to_string();
+    let callback_url = config.streamlabs_oauth().redirect().to_string();
 
     let resp = http_client
         .post("https://streamlabs.com/api/v2.0/token")

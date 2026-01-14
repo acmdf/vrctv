@@ -1,11 +1,5 @@
-use std::env;
-
 use axum::extract::ws::Message;
 use log::{error, info};
-use vrctv_common::{
-    CustomRewardResponse, Notify, ServerMessage, TwitchEvent, TwitchEventSource,
-    TwitchTriggerRequest,
-};
 use reqwest::Error;
 use tokio::sync::mpsc::Sender;
 use twitch_api::{
@@ -21,9 +15,14 @@ use twitch_api::{
     },
     twitch_oauth2::{ClientId, ClientSecret, UserToken},
 };
+use vrctv_common::{
+    CustomRewardResponse, Notify, ServerMessage, TwitchEvent, TwitchEventSource,
+    TwitchTriggerRequest,
+};
 
-use crate::server::{
-    ClientConnection, send_all_message, send_error, send_message, send_task_response,
+use crate::{
+    config::config,
+    server::{ClientConnection, send_all_message, send_error, send_message, send_task_response},
 };
 
 /// Handle Twitch token errors, such as refreshing the token if it has expired
@@ -33,12 +32,12 @@ pub async fn handle_token_error(
     error: &ClientRequestError<Error>,
     token: &mut UserToken,
 ) -> Result<bool, String> {
+    let config = config().await;
+
     if let ClientRequestError::RequestError(e) = &error {
         if e.status() == Some(reqwest::StatusCode::UNAUTHORIZED) {
-            let client_secret =
-                env::var("TWITCH_SECRET").map_err(|_| "Missing TWITCH_SECRET env var")?;
-            let client_id =
-                env::var("TWITCH_CLIENT").map_err(|_| "Missing TWITCH_CLIENT env var")?;
+            let client_secret = config.twitch_oauth().secret().to_string();
+            let client_id = config.twitch_oauth().client().to_string();
             let new_token = UserToken::from_existing_or_refresh_token(
                 http_client,
                 token.access_token.clone(),

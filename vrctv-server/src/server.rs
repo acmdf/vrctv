@@ -1,4 +1,4 @@
-use std::{env, net::SocketAddr, sync::Arc};
+use std::{net::SocketAddr, sync::Arc};
 
 use axum::extract::ws::{Message, WebSocket};
 use futures_util::{SinkExt, StreamExt};
@@ -20,6 +20,7 @@ use vrctv_common::{
 
 use crate::{
     AppState,
+    config::config,
     db::Database,
     entities::{ActiveKey, ActiveStreamLabsKey, ActiveTwitchKey},
     streamlabs::{self, socket::SocketioConnection},
@@ -407,6 +408,8 @@ pub async fn handle_message(
     app_state: &AppState,
     context: Arc<Mutex<ClientContext>>,
 ) -> Result<bool, String> {
+    let config = config().await;
+
     match msg {
         Message::Ping(bytes) => {
             debug!("Received ping: {:?}", bytes);
@@ -453,8 +456,7 @@ pub async fn handle_message(
 
                     if let Some(client_version) = client_version {
                         // Check client version
-                        let expected_version =
-                            env::var("CLIENT_VERSION").unwrap_or_else(|_| "0.1.0".to_string());
+                        let expected_version = config.client_version();
                         if client_version != expected_version {
                             info!(
                                 "Client version mismatch: expected {}, got {}",
@@ -527,13 +529,9 @@ pub async fn handle_message(
                                 http_client,
                                 AccessToken::new(twitch_user.authentication),
                                 RefreshToken::new(twitch_user.refresh),
-                                ClientId::new(
-                                    env::var("TWITCH_CLIENT")
-                                        .expect("You must provide a TWITCH_CLIENT env var"),
-                                ),
+                                ClientId::new(config.twitch_oauth().client().to_string()),
                                 Some(ClientSecret::new(
-                                    env::var("TWITCH_SECRET")
-                                        .expect("You must provide a TWITCH_SECRET env var"),
+                                    config.twitch_oauth().secret().to_string(),
                                 )),
                             )
                             .await
@@ -555,14 +553,11 @@ pub async fn handle_message(
 
                             let token = streamlabs::UserToken::from_existing_or_refresh_token(
                                 &http_client,
-                                env::var("STREAMLABS_REDIRECT")
-                                    .expect("You must provide a STREAMLABS_REDIRECT env var"),
+                                config.streamlabs_oauth().redirect().to_string(),
                                 streamlabs_user.authentication,
                                 streamlabs_user.refresh,
-                                env::var("STREAMLABS_CLIENT")
-                                    .expect("You must provide a STREAMLABS_CLIENT env var"),
-                                env::var("STREAMLABS_SECRET")
-                                    .expect("You must provide a STREAMLABS_SECRET env var"),
+                                config.streamlabs_oauth().client().to_string(),
+                                config.streamlabs_oauth().secret().to_string(),
                             )
                             .await;
 
@@ -603,8 +598,7 @@ pub async fn handle_message(
 
                     if let Some(client_version) = client_version {
                         // Check client version
-                        let expected_version =
-                            env::var("CLIENT_VERSION").unwrap_or_else(|_| "0.1.0".to_string());
+                        let expected_version = config.client_version();
 
                         if client_version != expected_version {
                             info!(
