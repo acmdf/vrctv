@@ -19,6 +19,7 @@
     rewardStore,
   } from "$lib/stores/rewards";
   import ServerSelectorDialogue from "$lib/components/server-selector-dialogue.svelte";
+  import { onMount } from "svelte";
 
   const { data }: PageProps = $props();
 
@@ -59,7 +60,9 @@
     });
   });
 
-  warn(`Debug page data: ${JSON.stringify(data)}`);
+  onMount(() => {
+    warn(`Debug page data: ${JSON.stringify(data)}`);
+  });
 </script>
 
 <ServerSelectorDialogue bind:open={serverSelectOpen} />

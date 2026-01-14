@@ -60,6 +60,12 @@ jobs:
         # If you don't have `beforeBuildCommand` configured you may want to build your frontend here too.
         run: cd vrctv-desktop && pnpm install
 
+      - name: Setup common bindings
+        run: cd vrctv-common && cargo test
+
+      - name: Run desktop to generate bindings
+        run: cd vrctv-desktop && cargo run --bin binding-only
+
       - name: build server
         run: cd vrctv-server && cargo build --release
 

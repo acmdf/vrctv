@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::{env, time::Duration};
 
 use log::{error, LevelFilter};
 use serde::{Deserialize, Serialize};
@@ -58,8 +58,7 @@ pub enum ServiceStatus {
     Error(String),
 }
 
-#[cfg_attr(mobile, tauri::mobile_entry_point)]
-pub fn run() {
+pub fn setup_builder() -> Builder {
     let builder = Builder::<tauri::Wry>::new()
         .commands(collect_commands![
             fetch_avatars,
@@ -78,6 +77,13 @@ pub fn run() {
         .export(Typescript::default(), "../src/bindings.ts")
         .expect("Failed to export typescript bindings");
 
+    builder
+}
+
+#[cfg_attr(mobile, tauri::mobile_entry_point)]
+pub fn run() {
+    let builder = setup_builder();
+
     tauri::Builder::default()
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
@@ -85,13 +91,11 @@ pub fn run() {
         .plugin(tauri_plugin_notification::init())
         .plugin(
             tauri_plugin_log::Builder::new()
-                .level(
-                    if cfg!(debug_assertions) {
-                        LevelFilter::Debug
-                    } else {
-                        LevelFilter::Info
-                    },
-                )
+                .level(if cfg!(debug_assertions) {
+                    LevelFilter::Debug
+                } else {
+                    LevelFilter::Info
+                })
                 .level_for("vrchat_osc::mdns::task", LevelFilter::Warn)
                 .level_for("tauri_runtime_wry", LevelFilter::Off)
                 .target(tauri_plugin_log::Target::new(
