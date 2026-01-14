@@ -9,13 +9,12 @@
   import { TwitchWhisperTrigger } from "$lib/triggers/twitch-whisper";
   import TaskEditor from "$lib/components/task-editor.svelte";
 
-  const { data: rawData }: PageProps = $props();
-  const data = $derived(rawData) as Result<Avatar[], string>;
+  const { data }: PageProps & { data: Result<Avatar[], string> } = $props();
 
   const avatars = $derived(
     data.status === "ok"
       ? data.data.sort((a, b) => a.name.localeCompare(b.name))
-      : [],
+      : []
   );
 
   $effect(() => {
@@ -23,7 +22,7 @@
       type: "twitchTrigger",
       GetCustomRewards: {
         request_id: $serverConnection?.getNextRequestId(
-          "Get Custom Rewards - Rewards Page",
+          "Get Custom Rewards - Rewards Page"
         ),
       },
     });
