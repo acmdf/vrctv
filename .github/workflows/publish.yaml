@@ -87,7 +87,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
-          upload_url: ${{ steps.tauri_build.outputs.upload_url }}
+          upload_url: ${{ steps.tauri_build.outputs.releaseUploadUrl }}
           asset_path: ${{ matrix.path }}
           asset_name: vrctv-server-${{ matrix.platform }}${{ matrix.extension }}
           asset_content_type: application/octet-stream
