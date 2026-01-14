@@ -25,3 +25,4 @@ reqwest = { version = "0.12.23", features = ["json"] }
 anyhow = { workspace = true }
 tokio-tungstenite = { version = "0.28.0", features = ["native-tls", "url"] }
 rust_socketio = { version = "0.6.0", features = ["async"] }
+dotenv = "0.15.0"
