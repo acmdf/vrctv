@@ -16,9 +16,13 @@ VRCTV is a stream helper app, that provides avatar changing and overlay reward s
 - Change avatar, switching back after a time delay to either a specific avatar or the previously detected one
 - Change OSC Parameters on a certain avatar, such as adding or removing elements of the avi, optionally reverting them after
 
+### Wardudo
+
+- Send OSC messages to [Warudo OSC](https://steamcommunity.com/sharedfiles/filedetails/?id=3006445377), which can be used to toggle expressions and objects, optionally reverting over a period of time
+
 ### General Overlay
 
-- Change the visibility of iframe elements based on triggers, such as showing images on stream or enabling and disabling streamlabs elements
+- Change the visibility of browser elements in OBS based on triggers, such as showing images on stream or enabling and disabling streamlabs elements
 
 # Setting up environment
 
