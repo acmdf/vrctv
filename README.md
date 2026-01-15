@@ -9,6 +9,17 @@
 
 VRCTV is a stream helper app, that provides avatar changing and overlay reward support
 
+## Current Features
+
+### Avatars
+
+- Change avatar, switching back after a time delay to either a specific avatar or the previously detected one
+- Change OSC Parameters on a certain avatar, such as adding or removing elements of the avi, optionally reverting them after
+
+### General Overlay
+
+- Change the visibility of iframe elements based on triggers, such as showing images on stream or enabling and disabling streamlabs elements
+
 # Setting up environment
 
 The server component needs some env variables set for it to function correctly, and those can either be set using a .env file in the root directory, or simply setting them in the environment. Following is an example .env file with some good defaults (*Important Note*: changing the scope variables could cause issues, not all of them are used currently but they're set aside for future use):
