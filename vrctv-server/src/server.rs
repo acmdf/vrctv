@@ -476,6 +476,7 @@ pub async fn handle_message(
                             title: "Version Unknown".into(),
                             message: "Your client did not send a version. Please ensure you are using the latest version for the best experience.".into(),
                         });
+                        info!("Client did not send a version");
                         send_message(warning_message, tx).await?;
                     }
                 }
@@ -619,6 +620,7 @@ pub async fn handle_message(
                             title: "Version Unknown".into(),
                             message: "Your client did not send a version. Please ensure you are using the latest version for the best experience.".into(),
                         });
+                        info!("Client did not send a version");
                         send_message(warning_message, tx).await?;
                     }
                 }
