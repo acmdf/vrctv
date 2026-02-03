@@ -5,12 +5,11 @@ rm *.sqlite
 #     "vrctv-common",
 #     "vrctv-server",
 #     "vrctv-desktop/src-tauri",
-sed -i 's/members = \[/members = [/; /members = \[/,/\]/s/"vrctv-desktop\/src-tauri",\s*//; /members = \[/,/\]/s/"vrctv-overlay",\s*//' Cargo.toml
+#     "vrctv-overlay",
 # ]
 # to
 # members = ["vrctv-common", "vrctv-server"]
-
-sed -i.bak 's/members = \[.*\]/members = ["vrctv-common", "vrctv-server"]/' Cargo.toml
+sed -i 's/members = \[/members = [/; /members = \[/,/\]/s/"vrctv-desktop\/src-tauri",\s*//; /members = \[/,/\]/s/"vrctv-overlay",\s*//' Cargo.toml
 
 cargo build --release -p vrctv-server
 
