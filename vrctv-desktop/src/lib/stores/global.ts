@@ -11,7 +11,6 @@ interface LocalState {
 
 type ClientState = LocalState & ConnectResponse;
 
-
 export const oscStateStore: Writable<{ [key: string]: OscValue }> = writable({});
 export const clientStateStore: Writable<ClientState> = writable({
     connected: false,
@@ -24,5 +23,5 @@ export const clientStateStore: Writable<ClientState> = writable({
     streamlabs_name: null
 })
 
-export const wssUrl: Writable<string> = persisted("PUBLIC_WEBSOCKET_URL", "PUBLIC_WEBSOCKET_URL" in ENV ? ENV.PUBLIC_WEBSOCKET_URL : "");
-export const backendUrl: Writable<string> = persisted("PUBLIC_BACKEND_URL", "PUBLIC_BACKEND_URL" in ENV ? ENV.PUBLIC_BACKEND_URL : "");
+export const wssUrl: Writable<string> = persisted("PUBLIC_WEBSOCKET_URL", "PUBLIC_WEBSOCKET_URL" in ENV ? ENV.PUBLIC_WEBSOCKET_URL as string : "");
+export const backendUrl: Writable<string> = persisted("PUBLIC_BACKEND_URL", "PUBLIC_BACKEND_URL" in ENV ? ENV.PUBLIC_BACKEND_URL as string : "");

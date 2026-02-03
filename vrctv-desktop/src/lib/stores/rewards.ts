@@ -4,13 +4,14 @@ import { SetAvatarReward } from "$lib/rewards/set-avatar";
 import { StreamlabsDonationTrigger } from "$lib/triggers/streamlabs-donation";
 import { TwitchBitDonationTrigger } from "$lib/triggers/twitch-bit-donation";
 import { OrTrigger } from "$lib/triggers/or";
-import { TwitchChannelPointsTrigger } from "$lib/triggers/twitch-channel-points";
 import { parse, stringify } from "devalue";
 import { restoreReward, restoreTrigger } from "$lib/task-parts";
 import { TriggerInstance } from "$lib/triggers/types";
 import { RewardInstance, type RewardContext } from "$lib/rewards/types";
 import type { CustomRewardResponse } from "../../../../vrctv-common/bindings/CustomRewardResponse";
 import { RewardHandler } from "$lib/reward-handler";
+import { TwitchMessageTrigger } from "$lib/triggers/twitch-message";
+import { SetOverlayReward } from "$lib/rewards/set-overlay";
 
 export interface Task {
     id: string;
@@ -31,8 +32,8 @@ export const defaultRewardStore: RewardStoreState = {
             name: "Furry Mode",
             trigger: new OrTrigger({
                 subtriggers: [
-                    new TwitchChannelPointsTrigger({
-                        reward_id: "f4a6e0a9-72c2-4590-83b8-6c631e6e57c7"
+                    new TwitchMessageTrigger({
+                        message_contains: "!FurryMode"
                     }),
                     new TwitchBitDonationTrigger({
                         minimum_amount: 500,
@@ -42,7 +43,7 @@ export const defaultRewardStore: RewardStoreState = {
             }),
             rewards: [
                 new SetAvatarReward({
-                    avatar_id: "avtr_66069c77-8ecb-439c-9643-cfb1fbfb1363",
+                    avatar_id: "avtr_da58f525-347c-4be7-8a26-9dc0ebc83782",
                     return_to: "previous",
                     timeout_ms: 300000
                 })
@@ -61,18 +62,36 @@ export const defaultRewardStore: RewardStoreState = {
                         minimum_amount: 5,
                         message_contains: "MaidMode"
                     }),
+                    new TwitchMessageTrigger({
+                        message_contains: "!MaidMode"
+                    }),
                 ]
             }),
             rewards: [
                 new SetAvatarReward({
-                    avatar_id: "avtr_da3a3a4d-4936-4652-aa2b-442650e99f5c",
+                    avatar_id: "avtr_de75efc5-c67c-4ae8-8a14-cafa07d0fcad",
                     return_to: "previous",
                     timeout_ms: 300000
                 })
             ]
+        },
+        {
+            id: crypto.randomUUID(),
+            name: "Hide Logo",
+            trigger: new TwitchMessageTrigger({
+                message_contains: "!HideLogo"
+            }),
+            rewards: [
+                // Hide the logo for 30 seconds
+                new SetOverlayReward({
+                    overlay_id: 1,
+                    show: false,
+                    timeout_ms: 30000
+                })
+            ]
         }
     ],
-    baseAvatarId: "avtr_da3a3a4d-4936-4652-aa2b-442650e99f5c",
+    baseAvatarId: "avtr_de75efc5-c67c-4ae8-8a14-cafa07d0fcad",
 };
 
 export const rewardStore: Writable<RewardStoreState> = persisted(

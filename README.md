@@ -24,6 +24,13 @@ VRCTV is a stream helper app, that provides avatar changing and overlay reward s
 
 - Change the visibility of browser elements in OBS based on triggers, such as showing images on stream or enabling and disabling streamlabs elements
 
+# Testing
+
+To test VRCTV simply download one of the releases and it should automatically connect, you then need both the following avatars in your favourited avatars, and then you can test the `!MaidMode`, `!FurryMode` and `!HideLogo` commands in chat:
+
+- Maid mode: https://vrchat.com/home/avatar/avtr_de75efc5-c67c-4ae8-8a14-cafa07d0fcad
+- Furry mode: https://vrchat.com/home/avatar/avtr_da58f525-347c-4be7-8a26-9dc0ebc83782
+
 # Setting up environment
 
 The server component needs some env variables set for it to function correctly, and those can either be set using a .env file in the root directory, or simply setting them in the environment. Following is an example .env file with some good defaults (*Important Note*: changing the scope variables could cause issues, not all of them are used currently but they're set aside for future use):
