@@ -69,6 +69,8 @@ jobs:
         id: tauri_build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PUBLIC_WEBSOCKET_URL: wss://vrctv.acmdf.net/ws
+          PUBLIC_BACKEND_URL: https://vrctv.acmdf.net/
         with:
           projectPath: './vrctv-desktop'
           tagName: app-v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
